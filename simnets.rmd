@@ -99,7 +99,7 @@ nsim<-1000
 
 
 ```{r simulation parallel}
-sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all", plots=F){
+sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all", plots=F){
 res<-foreach(icount(nsim), .combine=rbind) %dopar%{
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
@@ -161,9 +161,9 @@ hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1
 prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
 no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
 ef<-prep+no_prep
-names(ef)<-c("control,","ran20","ran10+10","regen")
+names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
 cc<-ef[-1]-ef[1]
-names(cc)<-c("ran20","ran10+10", "regen")
+names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
 return(cc)}}
 ```
 
@@ -178,7 +178,7 @@ res4<-foreach(p2=seq(0.1,1,0.1), .combine=cbind) %:% foreach(icount(nsim), .comb
 
 
 ```{r}
-res5<-foreach(p1=seq(0.1,1,0.1), .combine=data.frame) %:% foreach(p2=seq(0.1,1,0.1), .combine=data.frame)%do% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2,nsim=100)}
+res5<-foreach(p1=seq(0.1,1,0.1), .combine=data.frame) %:% foreach(p2=seq(0.1,1,0.1), .combine=data.frame)%do% {sim_par(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2,nsim=100)}
 ```
 
 
