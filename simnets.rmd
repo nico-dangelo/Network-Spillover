@@ -1,0 +1,184 @@
+---
+title: "Toy Network Models"
+output: html_document
+date: '2022-07-18'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library("EpiModel")
+library("igraph")
+library("foreach")
+library("doParallel")
+library("memisc")
+```
+
+```{r params}
+N<-20 #network population/ graph order
+eprob<-0.1 #edge formation probability for ER model 
+phiv<-0.1 # underlying hiv prevalence
+PrEP1<-0.1 # PrEP assignment coverage in control treatment (a) 
+PrEP2<-0.2 # PrEP assignment coverage in counterfactual treatment (a*)
+#HIV risk by contact and PrEP allocation p2<p1
+p1<-0.2 #P(HIV|Contact and -PrEP)
+p2<-0.1 #P(HIV|Contact and PrEP)
+nsim<-1000
+```
+
+```{r simulation original}
+# sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1){
+# # plot a random graph, 3 color options
+# #control scenario graph, 10% assignment prob
+# g <- sample_gnp(N,eprob)
+# vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
+# # plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+# df_g<-as_long_data_frame(g)
+# colnames(df_g)<-c("from","to","color1","color2")
+# #compute P(HIV|PrEP)
+# treat_g<-subset(df_g, (df_g$color1=="blue"|df_g$color2=="blue"))
+# treat_inf_contact_g<-subset(treat_g, treat_g$color1=="red"|treat_g$color2=="red")
+# hiv_given_prep_g<-ifelse(nrow(treat_g)!=0,(nrow(treat_inf_contact_g)*p2)/nrow(treat_g),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_g<-subset(df_g, df_g$color1!="blue"&df_g$color2!="blue")
+# no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$color2=="red")
+# # hiv_given_no_prep_g<-nrow(no_treat_inf_contact_g)/nrow(no_treat_g)
+# hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
+# #Randomly assign 20% overall (shuffle attributes)
+# h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2))))))
+# # plot(h,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+# df_h<-as_long_data_frame(h)
+# colnames(df_h)<-c("from","to","color1","color2")
+# #Compute P(HIV|PrEP)
+# treat_h<-subset(df_h, (df_h$color1=="blue"|df_h$color2=="blue"))
+# treat_inf_contact_h<-subset(treat_h, treat_h$color1=="red"|treat_h$color2=="red")
+# hiv_given_prep_h<-ifelse(nrow(treat_h)!=0,(nrow(treat_inf_contact_h)*p2)/nrow(treat_h),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
+# no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
+# hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
+# #duplicate network structure, additional 10% treated 
+# j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2)))))
+# # plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+# df_j<-as_long_data_frame(j)
+# colnames(df_j)<-c("from","to","color1","color2")
+# #compute (HIV|PrEP)
+# treat_j<-subset(df_j, (df_j$color1=="blue"|df_j$color2=="blue"))
+# treat_inf_contact_j<-subset(treat_j, treat_j$color1=="red"|treat_j$color2=="red")
+# hiv_given_prep_j<-ifelse(nrow(treat_j)!=0,(nrow(treat_inf_contact_j)*p2)/nrow(treat_j),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_j<-subset(df_j, df_j$color1!="blue"&df_j$color2!="blue")
+# no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$color2=="red")
+# hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
+# # plot a random graph, 3 color options
+# k <- sample_gnp(N,eprob)
+# vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+# # plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+# df_k<-as_long_data_frame(k)
+# colnames(df_k)<-c("from","to","color1","color2")
+# #Compute P(HIV|PrEP)
+# treat_k<-subset(df_k, (df_k$color1=="blue"|df_k$color2=="blue"))
+# treat_inf_contact_k<-subset(treat_k, treat_k$color1=="red"|treat_k$color2=="red")
+# hiv_given_prep_k<-ifelse(nrow(treat_k)!=0,(nrow(treat_inf_contact_k)*p2)/nrow(treat_k),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_k<-subset(df_k, df_k$color1!="blue"&df_k$color2!="blue")
+# no_treat_inf_contact_k<-subset(no_treat_k, no_treat_k$color1=="red"|no_treat_k$color2=="red")
+# hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1)/nrow(no_treat_k),0)
+# # Combine effect estimates
+# prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
+# no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+# ef<-prep+no_prep
+# names(ef)<-c("control,","ran20","ran10+10","regen")
+# cc<-ef[-1]-ef[1]
+# names(cc)<-c("ran20","ran10+10", "regen")
+# return(cc)}
+```
+
+
+
+```{r simulation parallel}
+sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all", plots=F){
+res<-foreach(icount(nsim), .combine=rbind) %dopar%{
+# plot a random graph, 3 color options
+#control scenario graph, 10% assignment prob
+g <- sample_gnp(N,eprob)
+vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
+# plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+df_g<-as_long_data_frame(g)
+colnames(df_g)<-c("from","to","color1","color2")
+#compute P(HIV|PrEP)
+treat_g<-subset(df_g, (df_g$color1=="blue"|df_g$color2=="blue"))
+treat_inf_contact_g<-subset(treat_g, treat_g$color1=="red"|treat_g$color2=="red")
+hiv_given_prep_g<-ifelse(nrow(treat_g)!=0,(nrow(treat_inf_contact_g)*p2)/nrow(treat_g),0)
+#Compute P(HIV|-PrEP)
+no_treat_g<-subset(df_g, df_g$color1!="blue"&df_g$color2!="blue")
+no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$color2=="red")
+# hiv_given_no_prep_g<-nrow(no_treat_inf_contact_g)/nrow(no_treat_g)
+hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
+#Randomly assign 20% overall (shuffle attributes)
+h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2))))))
+# plot(h,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+df_h<-as_long_data_frame(h)
+colnames(df_h)<-c("from","to","color1","color2")
+#Compute P(HIV|PrEP)
+treat_h<-subset(df_h, (df_h$color1=="blue"|df_h$color2=="blue"))
+treat_inf_contact_h<-subset(treat_h, treat_h$color1=="red"|treat_h$color2=="red")
+hiv_given_prep_h<-ifelse(nrow(treat_h)!=0,(nrow(treat_inf_contact_h)*p2)/nrow(treat_h),0)
+#Compute P(HIV|-PrEP)
+no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
+no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
+hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
+#duplicate network structure, additional 10% treated 
+j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2)))))
+# plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+df_j<-as_long_data_frame(j)
+colnames(df_j)<-c("from","to","color1","color2")
+#compute (HIV|PrEP)
+treat_j<-subset(df_j, (df_j$color1=="blue"|df_j$color2=="blue"))
+treat_inf_contact_j<-subset(treat_j, treat_j$color1=="red"|treat_j$color2=="red")
+hiv_given_prep_j<-ifelse(nrow(treat_j)!=0,(nrow(treat_inf_contact_j)*p2)/nrow(treat_j),0)
+#Compute P(HIV|-PrEP)
+no_treat_j<-subset(df_j, df_j$color1!="blue"&df_j$color2!="blue")
+no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$color2=="red")
+hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
+# plot a random graph, 3 color options
+k <- sample_gnp(N,eprob)
+vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+# plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
+df_k<-as_long_data_frame(k)
+colnames(df_k)<-c("from","to","color1","color2")
+#Compute P(HIV|PrEP)
+treat_k<-subset(df_k, (df_k$color1=="blue"|df_k$color2=="blue"))
+treat_inf_contact_k<-subset(treat_k, treat_k$color1=="red"|treat_k$color2=="red")
+hiv_given_prep_k<-ifelse(nrow(treat_k)!=0,(nrow(treat_inf_contact_k)*p2)/nrow(treat_k),0)
+#Compute P(HIV|-PrEP)
+no_treat_k<-subset(df_k, df_k$color1!="blue"&df_k$color2!="blue")
+no_treat_inf_contact_k<-subset(no_treat_k, no_treat_k$color1=="red"|no_treat_k$color2=="red")
+hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1)/nrow(no_treat_k),0)
+# Combine effect estimates
+prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
+no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+ef<-prep+no_prep
+names(ef)<-c("control,","ran20","ran10+10","regen")
+cc<-ef[-1]-ef[1]
+names(cc)<-c("ran20","ran10+10", "regen")
+return(cc)}}
+```
+
+
+
+```{r}
+# #sweep p1 only
+res3<-foreach(p1=seq(0.1,1,0.1), .combine=cbind) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
+# #sweep p2 only
+res4<-foreach(p2=seq(0.1,1,0.1), .combine=cbind) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
+```
+
+
+```{r}
+res5<-foreach(p1=seq(0.1,1,0.1), .combine=data.frame) %:% foreach(p2=seq(0.1,1,0.1), .combine=data.frame)%do% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2,nsim=100)}
+```
+
+
