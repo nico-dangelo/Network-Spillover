@@ -1,4 +1,4 @@
-sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all"){
+sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000){
   require(igraph)
   require(foreach)
   require(doParallel)
