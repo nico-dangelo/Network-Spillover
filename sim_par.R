@@ -1,8 +1,11 @@
 sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all"){
+  require(igraph)
+  require(foreach)
+  require(doParallel)
   res<-foreach(icount(nsim), .combine=rbind) %dopar%{
     # plot a random graph, 3 color options
     #control scenario graph, 10% assignment prob
-    g <- sample_gnp(N,eprob)
+    g <- igraph::sample_gnp(N,eprob)
     vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
     df_g<-as_long_data_frame(g)
     colnames(df_g)<-c("from","to","color1","color2")
@@ -39,7 +42,7 @@ sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, ns
     no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$color2=="red")
     hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
     # plot a random graph, 3 color options
-    k <- sample_gnp(N,eprob)
+    k <- igraph::sample_gnp(N,eprob)
     vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
     df_k<-as_long_data_frame(k)
     colnames(df_k)<-c("from","to","color1","color2")
