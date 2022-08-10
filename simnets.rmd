@@ -9,11 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r libraries}
-library("EpiModel")
-library("igraph")
-library("foreach")
-library("doParallel")
-library("reticulate")
+require("EpiModel")
+require("igraph")
+require("foreach")
+require("doParallel")
+require("reticulate")
+require(dplyr)
+require(ggplot2)
+require(patchwork)
 ```
 
 ```{r params}
@@ -159,7 +162,9 @@ ef<-prep+no_prep
 names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
 cc<-as.data.frame(t(ef[-1]-ef[1]))
 names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
-return(cc)}}
+res<-cbind(p1,p2,cc)
+names(res)<-c("p1","p2",names(cc))
+return(res)}}
 ```
 
 
@@ -175,19 +180,24 @@ res4<-foreach(p2=seq(0.1,1,0.1)) %:% foreach(icount(nsim), .combine=rbind) %dopa
 ```{r}
 l1<-as.list(seq(0.1,1,0.1))
 l2<-as.list(seq(0.1,1,0.1))
-res5<-foreach(p1=l1,.final=function(p1)setNames(p1,names(l1))) %:% foreach(p2=l2,.final=function(p2)setNames(p2,names(l2))) %do% {sim_par(p1=p1,p2=p2,nsim=20)}
+res5<-foreach(p1=l1, .combine=rbind) %:% foreach(p2=l2, .combine=rbind) %do% {sim_par(p1=p1,p2=p2,nsim=1000)}
 ```
 
 
 ```{r}
-# hists<-rapply(res5,hist,how="replace")
-meds<-rapply(res5,median)
-medians<-split(meds,f=names(meds))
-avgs<-rapply(res5,mean)
-means<-split(avgs,f=names(avgs))
+means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
+#just checking
+# test<-subset(res5,p1==0.1&p2==0.1)
+# colMeans(test)
 ```
 
 ```{r}
-
+#plot heatmap
+g<-ggplot(data=means,aes(x=p1,y=p2,fill=ran20))+geom_tile()
+h<-ggplot(data=means,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()
+j<-ggplot(data=means,aes(x=p1,p2,fill=regen))+geom_tile()
+g
+h
+j
 ```
 
