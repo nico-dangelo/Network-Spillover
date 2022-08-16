@@ -17,17 +17,21 @@ require("reticulate")
 require(dplyr)
 require(ggplot2)
 require(patchwork)
+require(purrr)
+require(furrr)
+require(tidyverse)
+# plan("multisession", workers=24)
 ```
 
 ```{r params}
-N<-20 #network population/ graph order
+# N<-20 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
 phiv<-0.1 # underlying hiv prevalence
 PrEP1<-0.1 # PrEP assignment coverage in control treatment (a) 
 PrEP2<-0.2 # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation p2<p1
-p1<-0.2 #P(HIV|Contact and -PrEP)
-p2<-0.1 #P(HIV|Contact and PrEP)
+# p1<-0.2 #P(HIV|Contact and -PrEP)
+# p2<-0.1 #P(HIV|Contact and PrEP)
 nsim<-1000
 ```
 
@@ -102,8 +106,7 @@ return(cc)}
 
 
 ```{r simulation parallel}
-sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000, scen="all"){
-res<-foreach(icount(nsim), .combine=rbind) %dopar%{
+sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000){
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
 g <- sample_gnp(N,eprob)
@@ -162,42 +165,99 @@ ef<-prep+no_prep
 names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
 cc<-as.data.frame(t(ef[-1]-ef[1]))
 names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
-res<-cbind(p1,p2,cc)
-names(res)<-c("p1","p2",names(cc))
-return(res)}}
+res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,nsim,cc)
+names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2","nsim",names(cc))
+
+return(res)}
 ```
 
 
 
 ```{r}
-# #sweep p1 only
-res3<-foreach(p1=seq(0.1,1,0.1) ) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
-# #sweep p2 only
-res4<-foreach(p2=seq(0.1,1,0.1)) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
+# # #sweep p1 only
+# res3<-foreach(p1=seq(0.1,1,0.1) ) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
+# # #sweep p2 only
+# res4<-foreach(p2=seq(0.1,1,0.1)) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
 ```
 
 
 ```{r}
-l1<-as.list(seq(0.1,1,0.1))
-l2<-as.list(seq(0.1,1,0.1))
-res5<-foreach(p1=l1, .combine=rbind) %:% foreach(p2=l2, .combine=rbind) %do% {sim_par(p1=p1,p2=p2,nsim=1000)}
+# l1<-as.list(seq(0.1,1,0.1))
+# l2<-as.list(seq(0.1,1,0.1))
+# res5<-foreach(p1=l1, .combine=rbind) %:% foreach(p2=l2, .combine=rbind) %do% {sim_par(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2, nsim=100)}
 ```
 
 
 ```{r}
-means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
-#just checking
-# test<-subset(res5,p1==0.1&p2==0.1)
-# colMeans(test)
+params<-tidyr::expand_grid(N=c(20,200,2000,20000),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
+res_grid<-purrr::pmap_dfr(params,sim_par)
+beepr::beep()
+```
+
+
+```{r}
+col_list<-names(res_grid)[4:6]
+# means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
+means<-res_grid%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
 ```{r}
-#plot heatmap
-g<-ggplot(data=means,aes(x=p1,y=p2,fill=ran20))+geom_tile()
-h<-ggplot(data=means,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()
-j<-ggplot(data=means,aes(x=p1,p2,fill=regen))+geom_tile()
-g
-h
-j
+# #plot heatmap
+# g<-ggplot(data=means,aes(x=p1,y=p2,fill=ran20))+geom_tile()+scale_fill_gradient(low="blue", high="green")
+# h<-ggplot(data=means,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()+scale_fill_gradient(low="blue", high="green")
+# j<-ggplot(data=means,aes(x=p1,p2,fill=regen))+geom_tile()+scale_fill_gradient(low="blue", high="green")
+# # gridExtra::grid.arrange(g,h,j)
+# g
+# h
+# j
+```
+
+```{r}
+p1<-ggplot(means,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+p2<-ggplot(means,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,,limits=c(-1,1))+facet_grid(~N)
+p3<-ggplot(means,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+p1/p2/p3
+```
+
+```{r}
+p1
+p2
+p3
+```
+
+```{r}
+#check the hypothesis that for p1=p2 (diagonal) means should be constant in 10+10 scenario
+diagonal<-means%>%filter(p1==p2,.preserve = T)
+diagonal_ran20<-ggplot(diagonal,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+diagonal_ran10<-ggplot(diagonal,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+diagonal_regen<-ggplot(diagonal,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+diagonal_ran20/diagonal_ran10/diagonal_regen
+```
+
+```{r}
+#check sensitivity to sample size
+params_samp<-expand.grid(N=20,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=10^seq(2,5,1))
+res_samp<-pmap_dfr(params_samp,sim_par)
+means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
+```
+```{r}
+samp_ran20<-ggplot(res_samp,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+samp_ran10<-ggplot(res_samp,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+samp_regen<-ggplot(res_samp,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+samp_ran20/samp_ran10/samp_regen
+```
+```{r}
+#increase underlying HIV prevalence phiv
+#check rounding issues!
+params_phiv<-expand.grid(N=20,phiv=seq(0.1,0.3,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
+res_phiv<-pmap_dfr(params_phiv,sim_par)
+res_phiv%>%group_by(phiv,p1,p2)%>%summarise(across(col_list,mean))
+```
+
+```{r}
+phiv_ran20<-ggplot(res_phiv,aes(x=p1,y=p2,fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
+phiv_ran10<-ggplot(res_phiv,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
+phiv_regen<-ggplot(res_phiv,aes(x=p1,y=p2,fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
+phiv_ran20/phiv_ran10/phiv_regen
 ```
 
