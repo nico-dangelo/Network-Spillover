@@ -16,23 +16,26 @@ require("doParallel")
 require("reticulate")
 require(dplyr)
 require(ggplot2)
+require(desplot)
 require(patchwork)
 require(purrr)
 require(furrr)
 require(tidyverse)
 # plan("multisession", workers=24)
+seed=NULL
+options(future.rng.onMisuse="ignore")
 ```
 
 ```{r params}
 # N<-20 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
 phiv<-0.1 # underlying hiv prevalence
-PrEP1<-0.1 # PrEP assignment coverage in control treatment (a) 
-PrEP2<-0.2 # PrEP assignment coverage in counterfactual treatment (a*)
+PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
+PrEP2<-0.3 # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation p2<p1
-# p1<-0.2 #P(HIV|Contact and -PrEP)
+# p1<-0 .2 #P(HIV|Contact and -PrEP)
 # p2<-0.1 #P(HIV|Contact and PrEP)
-nsim<-1000
+nsim<-100
 ```
 
 ```{r simulation original}
@@ -40,7 +43,7 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1){
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
 g <- sample_gnp(N,eprob)
-vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
+vertex_attr(g) <- list(color =c(rep("red", ceiling(gorder(g)*phiv)), rep("blue",ceiling(gorder(g)*PrEP1)), rep("black", ceiling(gorder(g)*(1-(phiv+PrEP1))))))
 # plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
 df_g<-as_long_data_frame(g)
 colnames(df_g)<-c("from","to","color1","color2")
@@ -54,7 +57,7 @@ no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$c
 # hiv_given_no_prep_g<-nrow(no_treat_inf_contact_g)/nrow(no_treat_g)
 hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
 #Randomly assign 20% overall (shuffle attributes)
-h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2))))))
+h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", ceiling(gorder(g)*phiv)), rep("blue",ceiling(gorder(g)*PrEP2)), rep("black", ceiling(gorder(g)*(1-(phiv+PrEP2)))))))
 # plot(h,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
 df_h<-as_long_data_frame(h)
 colnames(df_h)<-c("from","to","color1","color2")
@@ -67,7 +70,7 @@ no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
 no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
 hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
 #duplicate network structure, additional 10% treated
-j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2)))))
+j<-set_vertex_attr(g,"color",value=c(rep("red", ceiling(gorder(g)*phiv)), rep("blue",ceiling(gorder(g)*PrEP2)), rep("black", ceiling(gorder(g)*(1-(phiv+PrEP2))))))
 # plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
 df_j<-as_long_data_frame(j)
 colnames(df_j)<-c("from","to","color1","color2")
@@ -81,7 +84,7 @@ no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$c
 hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
 # plot a random graph, 3 color options
 k <- sample_gnp(N,eprob)
-vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+vertex_attr(k) <- list(color =c(rep("red", ceiling(gorder(k)*phiv)), rep("blue",ceiling(gorder(k)*PrEP1)), rep("black", ceiling(gorder(k)*(1-(phiv+PrEP1))))))
 # plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)
 df_k<-as_long_data_frame(k)
 colnames(df_k)<-c("from","to","color1","color2")
@@ -97,82 +100,204 @@ hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1
 prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
 no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
 ef<-prep+no_prep
-names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
+names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
 cc<-as.data.frame(t(ef[-1]-ef[1]))
-names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
-return(cc)}
-```
-
-
-
-```{r simulation parallel}
-sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=1000){
-# plot a random graph, 3 color options
-#control scenario graph, 10% assignment prob
-g <- sample_gnp(N,eprob)
-vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
-df_g<-as_long_data_frame(g)
-colnames(df_g)<-c("from","to","color1","color2")
-#compute P(HIV|PrEP)
-treat_g<-subset(df_g, (df_g$color1=="blue"|df_g$color2=="blue"))
-treat_inf_contact_g<-subset(treat_g, treat_g$color1=="red"|treat_g$color2=="red")
-hiv_given_prep_g<-ifelse(nrow(treat_g)!=0,(nrow(treat_inf_contact_g)*p2)/nrow(treat_g),0)
-#Compute P(HIV|-PrEP)
-no_treat_g<-subset(df_g, df_g$color1!="blue"&df_g$color2!="blue")
-no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$color2=="red")
-hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
-#Randomly assign 20% overall (shuffle attributes)
-h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2))))))
-df_h<-as_long_data_frame(h)
-colnames(df_h)<-c("from","to","color1","color2")
-#Compute P(HIV|PrEP)
-treat_h<-subset(df_h, (df_h$color1=="blue"|df_h$color2=="blue"))
-treat_inf_contact_h<-subset(treat_h, treat_h$color1=="red"|treat_h$color2=="red")
-hiv_given_prep_h<-ifelse(nrow(treat_h)!=0,(nrow(treat_inf_contact_h)*p2)/nrow(treat_h),0)
-#Compute P(HIV|-PrEP)
-no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
-no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
-hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
-#duplicate network structure, additional 10% treated 
-j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2)))))
-df_j<-as_long_data_frame(j)
-colnames(df_j)<-c("from","to","color1","color2")
-#compute (HIV|PrEP)
-treat_j<-subset(df_j, (df_j$color1=="blue"|df_j$color2=="blue"))
-treat_inf_contact_j<-subset(treat_j, treat_j$color1=="red"|treat_j$color2=="red")
-hiv_given_prep_j<-ifelse(nrow(treat_j)!=0,(nrow(treat_inf_contact_j)*p2)/nrow(treat_j),0)
-#Compute P(HIV|-PrEP)
-no_treat_j<-subset(df_j, df_j$color1!="blue"&df_j$color2!="blue")
-no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$color2=="red")
-hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
-# plot a random graph, 3 color options
-k <- sample_gnp(N,eprob)
-vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
-df_k<-as_long_data_frame(k)
-colnames(df_k)<-c("from","to","color1","color2")
-#Compute P(HIV|PrEP)
-treat_k<-subset(df_k, (df_k$color1=="blue"|df_k$color2=="blue"))
-treat_inf_contact_k<-subset(treat_k, treat_k$color1=="red"|treat_k$color2=="red")
-hiv_given_prep_k<-ifelse(nrow(treat_k)!=0,(nrow(treat_inf_contact_k)*p2)/nrow(treat_k),0)
-#Compute P(HIV|-PrEP)
-no_treat_k<-subset(df_k, df_k$color1!="blue"&df_k$color2!="blue")
-no_treat_inf_contact_k<-subset(no_treat_k, no_treat_k$color1=="red"|no_treat_k$color2=="red")
-hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1)/nrow(no_treat_k),0)
-# Combine effect estimates
-prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
-no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
-ef<-prep+no_prep
-names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
-cc<-as.data.frame(t(ef[-1]-ef[1]))
-names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
-res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,nsim,cc)
-names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2","nsim",names(cc))
-
+names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
+res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,cc)
+names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(cc))
 return(res)}
 ```
 
 
 
+```{r simulation parallel}
+sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=100 ){
+res<-future_map_dfr(1:nsim,~sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2))
+  # function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1){
+# # plot a random graph, 3 color options
+# #control scenario graph, 10% assignment prob
+# g <- sample_gnp(N,eprob) 
+# vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
+# df_g<-as_long_data_frame(g)
+# colnames(df_g)<-c("from","to","color1","color2")
+# #compute P(HIV|PrEP)
+# treat_g<-subset(df_g, (df_g$color1=="blue"|df_g$color2=="blue"))
+# treat_inf_contact_g<-subset(treat_g, treat_g$color1=="red"|treat_g$color2=="red")
+# hiv_given_prep_g<-ifelse(nrow(treat_g)!=0,(nrow(treat_inf_contact_g)*p2)/nrow(treat_g),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_g<-subset(df_g, df_g$color1!="blue"&df_g$color2!="blue")
+# no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$color2=="red")
+# hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
+# #Randomly assign 20% overall (shuffle attributes)
+# h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2))))))
+# df_h<-as_long_data_frame(h)
+# colnames(df_h)<-c("from","to","color1","color2")
+# #Compute P(HIV|PrEP)
+# treat_h<-subset(df_h, (df_h$color1=="blue"|df_h$color2=="blue"))
+# treat_inf_contact_h<-subset(treat_h, treat_h$color1=="red"|treat_h$color2=="red")
+# hiv_given_prep_h<-ifelse(nrow(treat_h)!=0,(nrow(treat_inf_contact_h)*p2)/nrow(treat_h),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
+# no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
+# hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
+# #duplicate network structure, additional 10% treated 
+# j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", gorder(g)*(1-(phiv+PrEP2)))))
+# df_j<-as_long_data_frame(j)
+# colnames(df_j)<-c("from","to","color1","color2")
+# #compute (HIV|PrEP)
+# treat_j<-subset(df_j, (df_j$color1=="blue"|df_j$color2=="blue"))
+# treat_inf_contact_j<-subset(treat_j, treat_j$color1=="red"|treat_j$color2=="red")
+# hiv_given_prep_j<-ifelse(nrow(treat_j)!=0,(nrow(treat_inf_contact_j)*p2)/nrow(treat_j),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_j<-subset(df_j, df_j$color1!="blue"&df_j$color2!="blue")
+# no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$color2=="red")
+# hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
+# # plot a random graph, 3 color options
+# k <- sample_gnp(N,eprob)
+# vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+# df_k<-as_long_data_frame(k)
+# colnames(df_k)<-c("from","to","color1","color2")
+# #Compute P(HIV|PrEP)
+# treat_k<-subset(df_k, (df_k$color1=="blue"|df_k$color2=="blue"))
+# treat_inf_contact_k<-subset(treat_k, treat_k$color1=="red"|treat_k$color2=="red")
+# hiv_given_prep_k<-ifelse(nrow(treat_k)!=0,(nrow(treat_inf_contact_k)*p2)/nrow(treat_k),0)
+# #Compute P(HIV|-PrEP)
+# no_treat_k<-subset(df_k, df_k$color1!="blue"&df_k$color2!="blue")
+# no_treat_inf_contact_k<-subset(no_treat_k, no_treat_k$color1=="red"|no_treat_k$color2=="red")
+# hiv_given_no_prep_k<-ifelse(nrow(no_treat_k)!=0,(nrow(no_treat_inf_contact_k)*p1)/nrow(no_treat_k),0)
+# # Combine effect estimates
+# prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
+# no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+# ef<-prep+no_prep
+# names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
+# cc<-as.data.frame(t(ef[-1]-ef[1]))
+# names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("ran", PrEP1*100,"+",PrEP1*100, sep=""),"regen")
+# res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,cc)
+# names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(cc))
+# return(res)})
+return(res)}
+```
+
+Trying to parallellize sim rather than use simpar, use rerun from purrr?
+Don't use rerun, use a map with sim_par?
+
+```{r}
+
+# testing<-rerun(nsim,future_map_dfr(params,sim))
+# testing<-future_pmap_dfr(params,sim_par)
+# test_slice<-testing%>%group_by(p1,p2)%>%slice(1:nsim)
+col_list=c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
+# test_means<-testing%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
+```
+
+
+
+
+Check sensitivity to network size, plot heatmap by N
+
+```{r}
+params_N<-tidyr::expand_grid(N=c(20,200),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), nsim=nsim)
+future::plan(
+      list(
+        future::tweak(
+          future::multisession, 
+          workers = 2), 
+        future::tweak(
+          future::multisession,
+          workers = 12)
+        )
+      )
+res_N<-future_pmap_dfr(params_N,sim_par)
+means_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),mean))
+```
+
+
+```{r}
+N_plot1<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+N_plot2<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+N_plot3<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
+N_plot1/N_plot2/N_plot3
+```
+
+```{r}
+N_plot1
+N_plot2
+N_plot3
+```
+check sensitivity to sample size-cluster?
+
+```{r}
+params_samp<-expand.grid(N=20,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=10^seq(2,4,1))
+future::plan(
+      list(
+        future::tweak(
+          future::multisession, 
+          workers = 4), 
+        future::tweak(
+          future::multisession,
+          workers = 6)
+        )
+      )
+res_samp<-future_pmap_dfr(params_samp,sim_par)
+means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
+```
+
+```{r}
+# samp_ran20<-ggplot(res_samp,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+# samp_ran10<-ggplot(res_samp,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+# samp_regen<-ggplot(res_samp,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
+# samp_ran20/samp_ran10/samp_regen
+```
+
+increase underlying HIV prevalence phiv
+
+```{r}
+#check rounding issues!
+params_phiv<-expand.grid(N=20,phiv=seq(0.1,0.3,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
+future::plan(
+      list(
+        future::tweak(
+          future::multisession, 
+          workers = 3), 
+        future::tweak(
+          future::multisession,
+          workers = 8)
+        )
+      )
+res_phiv<-future_pmap_dfr(params_phiv,sim_par)
+means_phiv<-res_phiv%>%group_by(phiv,p1,p2)%>%summarise(across(col_list,mean))
+```
+
+```{r}
+phiv_ran1<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)
+phiv_ran2<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)
+phiv_regen<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)
+phiv_ran1/phiv_ran2/phiv_regen
+```
+
+Increasing p1 only
+
+```{r}
+params_p1<-expand_grid(N=20,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.01),p2=0.1,nsim=200)
+res_p1<-future_pmap_dfr(params_p1,sim_par)
+means_p1<-res_p1%>%group_by(p1,p2)%>%summarise(across(col_list,mean))
+```
+
+
+```{r}
+p1_ran1<-ggplot(means_p1,aes(x=p1,y=p2))+aes(fill=col_list[1]+geom_tile()
+p1_ran1
+```
+
+
+
+
+
+
+
+
+
+Below are failed attempts at parallelization DO NOT USE
 ```{r}
 # # #sweep p1 only
 # res3<-foreach(p1=seq(0.1,1,0.1) ) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
@@ -187,77 +312,24 @@ return(res)}
 # res5<-foreach(p1=l1, .combine=rbind) %:% foreach(p2=l2, .combine=rbind) %do% {sim_par(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2, nsim=100)}
 ```
 
-
 ```{r}
-params<-tidyr::expand_grid(N=c(20,200,2000,20000),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
-res_grid<-purrr::pmap_dfr(params,sim_par)
-beepr::beep()
+# params<-tidyr::expand_grid(N=c(20,200,2000,20000),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
+# res_grid<-purrr::pmap_dfr(params,sim_par)
+# beepr::beep()
 ```
 
 
 ```{r}
-col_list<-names(res_grid)[4:6]
-# means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
-means<-res_grid%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
+# col_list<-names(res_grid)[4:6]
+# # means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
+# means<-res_grid%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
-```{r}
-# #plot heatmap
-# g<-ggplot(data=means,aes(x=p1,y=p2,fill=ran20))+geom_tile()+scale_fill_gradient(low="blue", high="green")
-# h<-ggplot(data=means,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()+scale_fill_gradient(low="blue", high="green")
-# j<-ggplot(data=means,aes(x=p1,p2,fill=regen))+geom_tile()+scale_fill_gradient(low="blue", high="green")
-# # gridExtra::grid.arrange(g,h,j)
-# g
-# h
-# j
-```
 
-```{r}
-p1<-ggplot(means,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
-p2<-ggplot(means,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,,limits=c(-1,1))+facet_grid(~N)
-p3<-ggplot(means,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
-p1/p2/p3
-```
 
-```{r}
-p1
-p2
-p3
-```
 
-```{r}
-#check the hypothesis that for p1=p2 (diagonal) means should be constant in 10+10 scenario
-diagonal<-means%>%filter(p1==p2,.preserve = T)
-diagonal_ran20<-ggplot(diagonal,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
-diagonal_ran10<-ggplot(diagonal,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
-diagonal_regen<-ggplot(diagonal,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)
-diagonal_ran20/diagonal_ran10/diagonal_regen
-```
 
-```{r}
-#check sensitivity to sample size
-params_samp<-expand.grid(N=20,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=10^seq(2,5,1))
-res_samp<-pmap_dfr(params_samp,sim_par)
-means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
-```
-```{r}
-samp_ran20<-ggplot(res_samp,aes(x=p1,y=p2, fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
-samp_ran10<-ggplot(res_samp,aes(x=p1,y=p2, fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
-samp_regen<-ggplot(res_samp,aes(x=p1,y=p2, fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~nsim)
-samp_ran20/samp_ran10/samp_regen
-```
-```{r}
-#increase underlying HIV prevalence phiv
-#check rounding issues!
-params_phiv<-expand.grid(N=20,phiv=seq(0.1,0.3,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
-res_phiv<-pmap_dfr(params_phiv,sim_par)
-res_phiv%>%group_by(phiv,p1,p2)%>%summarise(across(col_list,mean))
-```
 
-```{r}
-phiv_ran20<-ggplot(res_phiv,aes(x=p1,y=p2,fill=ran20))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
-phiv_ran10<-ggplot(res_phiv,aes(x=p1,y=p2,fill=`ran10+10`))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
-phiv_regen<-ggplot(res_phiv,aes(x=p1,y=p2,fill=regen))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~phiv)
-phiv_ran20/phiv_ran10/phiv_regen
-```
+
+
 
