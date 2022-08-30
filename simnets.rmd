@@ -1,5 +1,5 @@
 ---
-title: "Toy Network Models"
+title: "Network Simulation Models"
 output: html_document
 date: '2022-07-18'
 ---
@@ -47,7 +47,10 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
 g <- sample_gnp(N,eprob)
-vertex_attr(g) <- list(color =c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP1), rep("black", gorder(g)*(1-(phiv+PrEP1)))))
+l_hiv_g<-round((gorder(g)*phiv),0)
+l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
+l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
+vertex_attr(g) <- list(color=c(rep("red", l_hiv_g), rep("blue",l_PrEP1_g), rep("black",l_sus_g)))
 if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control")}
 df_g<-as_long_data_frame(g)
 colnames(df_g)<-c("from","to","color1","color2")
@@ -61,8 +64,10 @@ no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$c
 # hiv_given_no_prep_g<-nrow(no_treat_inf_contact_g)/nrow(no_treat_g)
 hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
 #Randomly assign 20% overall (shuffle attributes)
-l1<-round(gorder(g)*(1-(phiv+PrEP2)),0)
-h<-set_vertex_attr(g,"color",value=gtools::permute(c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", l1))))
+l_hiv_h<-round((gorder(g)*phiv),0)
+l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
+l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
+h<-set_vertex_attr(g,"color",value=c(rep("red",l_hiv_h), gtools::permute(c(rep("blue",l_PrEP2_h), rep("black", l_sus_h)))))
 if(plots){plot(h,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall")}
 df_h<-as_long_data_frame(h)
 colnames(df_h)<-c("from","to","color1","color2")
@@ -75,8 +80,10 @@ no_treat_h<-subset(df_h, df_h$color1!="blue"&df_h$color2!="blue")
 no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$color2=="red")
 hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
 #duplicate network structure, additional 10% treated
-l2<-round(gorder(g)*(1-(phiv+PrEP2)),0)
-j<-set_vertex_attr(g,"color",value=c(rep("red", gorder(g)*phiv), rep("blue",gorder(g)*PrEP2), rep("black", l2)))
+l_hiv_j<-round((gorder(g)*phiv),0)
+l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
+l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
+j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
 if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional")}
 df_j<-as_long_data_frame(j)
 colnames(df_j)<-c("from","to","color1","color2")
@@ -90,7 +97,10 @@ no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$c
 hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
 # plot a random graph, 3 color options
 k <- sample_gnp(N,eprob)
-vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+l_hiv_k<-round((gorder(k)*phiv),0)
+l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
+l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
+vertex_attr(k) <- list(color =c(rep("red", l_hiv_k), rep("blue",l_PrEP2_k), rep("black", l_sus_k)))
 if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated")}
 df_k<-as_long_data_frame(k)
 colnames(df_k)<-c("from","to","color1","color2")
@@ -108,14 +118,14 @@ names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_giv
 no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
 names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
 ef<-prep+no_prep
-names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
+names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen",PrEP2*100,sep=""))
 #compute causal contrasts
 if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))} 
 # else if(scale=="multiplicative"){ef<-ef+1;
 # cc<-as.data.frame(t(ef[-1])/ef[1]); 
 #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
 # }
-names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
+names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen", PrEP2*100,sep=""))
 res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc)
 names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(prep), names(no_prep),names(cc))
 return(res)}
@@ -201,7 +211,7 @@ Don't use rerun, use a map with sim_par?
 # testing<-rerun(nsim,future_map_dfr(params,sim))
 # testing<-future_pmap_dfr(params,sim_par)
 # test_slice<-testing%>%group_by(p1,p2)%>%slice(1:nsim)
-col_list=c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),"regen")
+col_list=c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen",PrEP2*100,sep=""))
 # test_means<-testing%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
@@ -253,7 +263,7 @@ future::plan(
           workers = 6)
         )
       )
-res_samp<-future_pmap_dfr(params_samp,sim_par)
+system.time(res_samp<-future_pmap_dfr(params_samp,sim_par))
 means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
@@ -345,36 +355,37 @@ p2_ran1/p2_ran2/p2_ran3
 ```
 
 
-Increasing PrEP1
+Increasing PrEP1 and PrEP2
 ```{r}
-params_PrEP1<-expand_grid(N=20,phiv=0.1,PrEP1=seq(0.1,0.3,0.1),PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
+params_PrEP<-expand_grid(N=20,phiv=0.1,PrEP1=seq(0.1,1,0.1),PrEP2=seq(0.1,1,0.1),p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)%>%filter(PrEP2>PrEP1)
+#%>%filter(PrEP2>PrEP1)
 future::plan(
       list(
         future::tweak(
           future::multisession, 
-          workers = 3), 
+          workers = 4), 
         future::tweak(
           future::multisession,
-          workers = 8)
+          workers = 6)
         )
       )
-res_PrEP1<-future_pmap_dfr(params_PrEP1,sim_par)
-means_PrEP1<-res_PrEP1%>%group_by(p1,p2)%>%summarise(across(col_list,mean))
+system.time(res_PrEP<-future_pmap_dfr(params_PrEP,sim_par))
+beepr::beep(8)
+col_list_PrEP<-names(res_PrEP)[20:43]
+means_PrEP<-res_PrEP%>%group_by(PrEP1,PrEP2)%>%summarise(across(col_list_PrEP,mean))
 ```
 
 ```{r}
-PrEP1_ran1<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~PrEP1)
-PrEP1_ran2<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~PrEP1)
-PrEP1_regen<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~PrEP1)
+PrEP_ran1<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~PrEP1)
+PrEP_ran2<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~PrEP1)
+PrEP_regen<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~PrEP1)
 ```
 
 
 ```{r}
-PrEP1_ran1
+PrEP_ran1
 ```
 
-
-Increasing PrEP2 only
 
 
 

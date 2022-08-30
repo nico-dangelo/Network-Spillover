@@ -42,7 +42,7 @@ no_treat_inf_contact_j<-subset(no_treat_j, no_treat_j$color1=="red"|no_treat_j$c
 hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1)/nrow(no_treat_j),0)
 # plot a random graph, 3 color options
 k <- sample_gnp(N,eprob)
-vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP1), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
+vertex_attr(k) <- list(color =c(rep("red", gorder(k)*phiv), rep("blue",gorder(k)*PrEP2), rep("black", gorder(k)*(1-(phiv+PrEP1)))))
 if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2)}
 df_k<-as_long_data_frame(k)
 colnames(df_k)<-c("from","to","color1","color2")
