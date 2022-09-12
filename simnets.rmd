@@ -22,17 +22,21 @@ require(purrr)
 require(furrr)
 require(tidyverse)
 require(RColorBrewer)
+# require(gganimate)
+# require(Ternary)
+require(ggtern)
+require(ggforce)
 # plan("multisession", workers=24)
-set.seed(100)
+set.seed(500)
 options(future.rng.onMisuse="ignore")
 ```
 
 ```{r params}
 N<-20 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
-phiv<-0.1 # underlying hiv prevalence
+phiv<-0.5 # underlying hiv prevalence
 PrEP1<-0.1 # PrEP assignment coverage in control treatment (a) 
-PrEP2<-0.2 # PrEP assignment coverage in counterfactual treatment (a*)
+PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation p
 p1<-0.2 #P(HIV|Contact and -PrEP)
 p2<-0.1 #P(HIV|Contact and PrEP)
@@ -51,9 +55,9 @@ l_hiv_g<-round((gorder(g)*phiv),0)
 l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
 l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
 vertex_attr(g) <- list(color=c(rep("red", l_hiv_g), rep("blue",l_PrEP1_g), rep("black",l_sus_g)))
-if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control")}
+if(plots==T){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control")}
 df_g<-as_long_data_frame(g)
-colnames(df_g)<-c("from","to","color1","color2")
+/colnames(df_g)<-c("from","to","color1","color2")
 #compute P(HIV|PrEP)
 treat_g<-subset(df_g, (df_g$color1=="blue"|df_g$color2=="blue"))
 treat_inf_contact_g<-subset(treat_g, treat_g$color1=="red"|treat_g$color2=="red")
@@ -65,7 +69,8 @@ no_treat_inf_contact_g<-subset(no_treat_g, no_treat_g$color1=="red"|no_treat_g$c
 hiv_given_no_prep_g<-ifelse(nrow(no_treat_g)!=0,(nrow(no_treat_inf_contact_g)*p1)/nrow(no_treat_g),0)
 #Randomly assign 20% overall (shuffle attributes)
 l_hiv_h<-round((gorder(g)*phiv),0)
-l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
+# l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
+l_PrEP2_h<-ceiling(((gorder(g)-l_hiv_h)*PrEP2))
 l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
 h<-set_vertex_attr(g,"color",value=c(rep("red",l_hiv_h), gtools::permute(c(rep("blue",l_PrEP2_h), rep("black", l_sus_h)))))
 if(plots){plot(h,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall")}
@@ -81,7 +86,8 @@ no_treat_inf_contact_h<-subset(no_treat_h, no_treat_h$color1=="red"|no_treat_h$c
 hiv_given_no_prep_h<-ifelse(nrow(no_treat_h)!=0,(nrow(no_treat_inf_contact_h)*p1)/nrow(no_treat_h),0)
 #duplicate network structure, additional 10% treated
 l_hiv_j<-round((gorder(g)*phiv),0)
-l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
+# l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
+l_PrEP2_j<-ceiling(((gorder(g)-l_hiv_j)*PrEP2))
 l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
 j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
 if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional")}
@@ -98,7 +104,8 @@ hiv_given_no_prep_j<-ifelse(nrow(no_treat_j)!=0,(nrow(no_treat_inf_contact_j)*p1
 # plot a random graph, 3 color options
 k <- sample_gnp(N,eprob)
 l_hiv_k<-round((gorder(k)*phiv),0)
-l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
+# l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
+l_PrEP2_k<-ceiling(((gorder(k)-l_hiv_k)*PrEP2))
 l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
 vertex_attr(k) <- list(color =c(rep("red", l_hiv_k), rep("blue",l_PrEP2_k), rep("black", l_sus_k)))
 if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated")}
@@ -118,14 +125,14 @@ names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_giv
 no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
 names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
 ef<-prep+no_prep
-names(ef)<-c("control,",paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen",PrEP2*100,sep=""))
+names(ef)<-c("control,","ran","add","regen")
 #compute causal contrasts
 if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))} 
 # else if(scale=="multiplicative"){ef<-ef+1;
 # cc<-as.data.frame(t(ef[-1])/ef[1]); 
 #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
 # }
-names(cc)<-c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen", PrEP2*100,sep=""))
+names(cc)<-c("ran","add","regen")
 res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc)
 names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(prep), names(no_prep),names(cc))
 return(res)}
@@ -211,7 +218,7 @@ Don't use rerun, use a map with sim_par?
 # testing<-rerun(nsim,future_map_dfr(params,sim))
 # testing<-future_pmap_dfr(params,sim_par)
 # test_slice<-testing%>%group_by(p1,p2)%>%slice(1:nsim)
-col_list=c(paste("ran", PrEP2*100, sep=""),paste("add",((PrEP2-PrEP1)*100), sep=""),paste("regen",PrEP2*100,sep=""))
+col_list=c("ran","add","regen")
 # test_means<-testing%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
@@ -238,9 +245,9 @@ means_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),mean))
 
 
 ```{r}
-N_plot1<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-N_plot2<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-N_plot3<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+viridis::scale_fill_viridis(discrete=F,limits=c(-1,1))+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot1<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot2<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot3<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 N_plot1/N_plot2/N_plot3
 ```
 
@@ -265,6 +272,7 @@ future::plan(
       )
 system.time(res_samp<-future_pmap_dfr(params_samp,sim_par))
 means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
+beepr::beep(8)
 ```
 
 ```{r}
@@ -280,8 +288,8 @@ samp_ran1/samp_ran2/samp_regen
 increase underlying HIV prevalence phiv
 
 ```{r}
-#check rounding issues!
-params_phiv<-expand.grid(N=20,phiv=seq(0.1,0.7,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
+
+params_phiv<-expand.grid(N=20,phiv=seq(0.1,1,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
 future::plan(
       list(
         future::tweak(
@@ -293,7 +301,8 @@ future::plan(
         )
       )
 res_phiv<-future_pmap_dfr(params_phiv,sim_par)
-means_phiv<-res_phiv%>%group_by(phiv,p1,p2)%>%summarise(across(col_list,mean))
+means_phiv<-res_phiv%>%group_by(across(all_of(c("phiv","p1","p2"))))%>%summarise(across(col_list,mean))
+beepr::beep(8)
 ```
 
 ```{r}
@@ -371,23 +380,80 @@ future::plan(
       )
 system.time(res_PrEP<-future_pmap_dfr(params_PrEP,sim_par))
 beepr::beep(8)
-col_list_PrEP<-names(res_PrEP)[20:43]
-means_PrEP<-res_PrEP%>%group_by(PrEP1,PrEP2)%>%summarise(across(col_list_PrEP,mean))
+means_PrEP<-res_PrEP%>%group_by(across(all_of(c("PrEP1","PrEP2","p1","p2"))))%>%summarise(across(col_list,mean), .groups = "keep")
 ```
 
 ```{r}
-PrEP_ran1<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~PrEP1)
-PrEP_ran2<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~PrEP1)
-PrEP_regen<-ggplot(means_PrEP1,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~PrEP1)
+# PrEP_ran1<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(PrEP2~PrEP1)
+# # +facet_wrap(PrEP1~PrEP2)
+# PrEP_ran2<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(PrEP1~PrEP2)
+# PrEP_regen<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(PrEP1~PrEP2)
 ```
+
+
 
 
 ```{r}
-PrEP_ran1
+# PrEP_ran1<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~PrEP1)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+# PrEP_ran2<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~PrEP1)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+# PrEP_regen<-ggplot(means_PrEP,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~PrEP1)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+```
+
+```{r}
+# PrEP_ran1
+# PrEP_ran2
+# PrEP_regen
 ```
 
 
+Try ternary plots (using Ternary) [try ggtern?]
+```{r}
+# ranBins <- 5
+# myran <- viridisLite::viridis(ranBins)
+# binnedran <- cut(means_PrEP$ran, ranBins)
+# dat_col <- myran[binnedran]
+# p2Bins <- 5
+# myp2 <- seq(0.5, 2.4, length.out = p2Bins)
+# binnedp2 <- cut(means_PrEP$p2, p2Bins)
+# dat_cex <- myp2[binnedp2]
+# TernaryPlot(atip="PrEP1",btip="PrEP2",ctip="p1", axis.labels = seq(0.1,1, by = 0.1))
+# TernaryPoints(means_PrEP[, c("PrEP1", "PrEP2", "p1")],
+#               cex = dat_cex,
+#               col = dat_col,
+#               )
+```
 
+```{r}
+# par(mar=rep(100,4))
+# PrEP_ran1<-ggtern(means_PrEP,aes_string(x="p1",y="p2",z="PrEP1", colour="ran",main=paste("PrEP2=", PrEP2, sep="")))+geom_point()+ theme_bw() +scale_colour_gradientn(colors=brewer.pal(5,name="BuPu"))
+# PrEP_ran1
+PrEP2s<-levels(as.factor(means_PrEP$PrEP2))
+
+my_plot_ran<-function(l){
+  means_PrEP%>%filter(PrEP2==l)%>%ggtern(aes_string(x="p1",y="p2",z="PrEP1", colour="ran"))+geom_point() +scale_colour_gradientn(colors=brewer.pal(5,name="BuPu"))+Tarrowlab("increasing p2")+Larrowlab("Increasing p1")+Rarrowlab("Increasing PrEP1")+ labs(title = paste("PrEP2=", l, sep=""))+theme_showarrows()}
+
+my_plot_add<-function(l){
+   means_PrEP%>%filter(PrEP2==l)%>%ggtern(aes_string(x="p1",y="p2",z="PrEP1", colour="add"))+geom_point() +scale_colour_gradientn(colors=brewer.pal(5,name="BuPu"))+Tarrowlab("increasing p2")+Larrowlab("Increasing p1")+Rarrowlab("Increasing PrEP1")+ labs(title = paste("PrEP2=", l, sep=""))+theme_showarrows()}
+
+my_plot_regen<-function(l){
+  means_PrEP%>%filter(PrEP2==l)%>%ggtern(aes_string(x="p1",y="p2",z="PrEP1", colour="regen"))+geom_point() +scale_colour_gradientn(colors=brewer.pal(5,name="BuPu"))+Tarrowlab("increasing p2")+Larrowlab("Increasing p1")+Rarrowlab("Increasing PrEP1")+ labs(title = paste("PrEP2=", l, sep=""))+theme_showarrows()}
+```
+
+```{r}
+lapply(PrEP2s,my_plot_ran)
+```
+
+```{r}
+lapply(PrEP2s,my_plot_add)
+```
+
+```{r}
+lapply(PrEP2s,my_plot_regen)
+```
+
+```{r}
+grid.arrange(plotlist_add[1],plotlist_ran[1],plotlist_regen[1])
+```
 
 
 
