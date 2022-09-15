@@ -7,7 +7,7 @@ Functions for estimation of causal effects under spillover on networks of PrEP o
 ### sim.R
 #### Description
 The main function that generates the networks for each simulation run, computes the effect estimates and causal contrasts, and generates network plots.
-##### Usage
+#### Usage
 #### Output 
 
 ### simpar.R
