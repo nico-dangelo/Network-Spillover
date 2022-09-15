@@ -18,8 +18,8 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
 * phiv: the HIV prevalence on each network. Must be a double in $(0,1)$. Default is 0.1.
 * PrEP1: The control PrEP allocation coverage. Must be a double in $(0,1)$. Default is 0.1.
 * PrEP2: The counterfactual PrEP allocation coverage. Must be a double in $(0,1]$. Default is 0.2.
-* p1: The probability of a node being infected with HIV given an infectious contact and being assigned to PrEP.
-* p2: The probability of a node being infected with HIV given an infectious contact and not being assigned to PrEP.
+* p1: The probability of a node being infected with HIV given an infectious contact and not being assigned to PrEP.
+* p2: The probability of a node being infected with HIV given an infectious contact and being assigned to PrEP.
 * plots: A flag indicating whether to display network plots for each scenario. Must be a logical. Default is FALSE.
 * scale: Indicates whether to compute effect estimates on an additive or multiplicative scale. Must be a string in {"additive", "multiplicative"}. Default is "addtive".
 #### Output 
