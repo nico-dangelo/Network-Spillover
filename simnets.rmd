@@ -2,17 +2,21 @@
 title: "Network Simulation Models"
 output: html_document
 date: '2022-07-18'
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Libraries
+
 ```{r libraries}
 require("EpiModel")
 require("igraph")
-require("foreach")
-require("doParallel")
+# require("foreach")
+# require("doParallel")
 require("reticulate")
 require(dplyr)
 require(ggplot2)
@@ -31,8 +35,10 @@ set.seed(500)
 options(future.rng.onMisuse="ignore")
 ```
 
+## Parameters
+
 ```{r params}
-N<-50 #network population/ graph order
+N<-20 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
 phiv<-0.1 # underlying hiv prevalence
 PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
@@ -45,7 +51,9 @@ plots=T
 scale="additive"
 ```
 
-```{r simulation original}
+## Simulation Function
+
+```{r simulation}
 sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive"){
   #parameter check
 # plot a random graph, 3 color options
@@ -62,6 +70,8 @@ treat_g<-V(g)[V(g)$color=="blue"]
 treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color=="blue")]
 g<-set_vertex_attr(g,name="color",index=inf_contact_g,value="orange")
 g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
+if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=layout_nicely(g))}
+inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
 hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
 #Compute P(HIV|-PrEP)
 no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
@@ -70,7 +80,6 @@ hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g
 #Randomly assign 20% overall (shuffle attributes)
 l_hiv_h<-round((gorder(g)*phiv),0)
 l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
-l_PrEP2_h<-ceiling(((gorder(g)-l_hiv_h)*PrEP2))
 l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
 h<-set_vertex_attr(g,"color",value=c(rep("red",l_hiv_h), sample(c(rep("blue",l_PrEP2_h), rep("black", l_sus_h)))))
 if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=layout_nicely(h))}
@@ -88,7 +97,6 @@ hiv_given_no_prep_h<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h
 #duplicate network structure, additional 10% treated
 l_hiv_j<-round((gorder(g)*phiv),0)
 l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
-l_PrEP2_j<-ceiling(((gorder(g)-l_hiv_j)*PrEP2))
 l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
 j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
 if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=layout_nicely(j))}
@@ -107,7 +115,6 @@ hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j
 k <- sample_gnp(N,eprob)
 l_hiv_k<-round((gorder(k)*phiv),0)
 l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
-l_PrEP2_k<-ceiling(((gorder(k)-l_hiv_k)*PrEP2))
 l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
 vertex_attr(k) <- list(color =c(rep("red", l_hiv_k), rep("blue",l_PrEP2_k), rep("black", l_sus_k)))
 if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=layout_nicely(k))}
@@ -142,7 +149,7 @@ return(res)
 }
 ```
 
-
+## Parallel resampling
 
 ```{r simulation parallel}
 sim_par<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=100, scale="additive"){
@@ -164,7 +171,7 @@ col_list=c("ran","add","regen")
 ```
 
 
-
+## Results 
 
 Check sensitivity to network size, plot heatmap by N
 
@@ -182,21 +189,38 @@ future::plan(
       )
 res_N<-future_pmap_dfr(params_N,sim_par)
 means_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),mean))
+var_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),var))
 ```
 
+### Figures
+
+#### Mean plots
 
 ```{r}
-N_plot1<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-N_plot2<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-N_plot3<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot_1<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot_2<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot_3<-ggplot(means_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 N_plot1/N_plot2/N_plot3
 ```
 
 ```{r}
-N_plot1
-N_plot2
-N_plot3
+N_plot_1
+N_plot_2
+N_plot_3
 ```
+
+#### Variance plots
+
+```{r}
+N_plot_4<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot_5<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot_6<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+N_plot4/N_plot5/N_plot6
+```
+
+
+
+
 check sensitivity to sample size-cluster?
 
 ```{r}
@@ -213,17 +237,18 @@ future::plan(
       )
 system.time(res_samp<-future_pmap_dfr(params_samp,sim_par))
 means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
+var_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,var))
 beepr::beep(8)
 ```
 
 ```{r}
-samp_ran1<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-samp_ran2<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-samp_regen<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+samp_plot_1<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+samp_plot_2<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+samp_plot_3<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 ```
 
 ```{r}
-samp_ran1/samp_ran2/samp_regen
+samp_plot_1/samp_plot_2/samp_plot_3
 ```
 
 increase underlying HIV prevalence phiv
@@ -243,15 +268,16 @@ future::plan(
       )
 res_phiv<-future_pmap_dfr(params_phiv,sim_par)
 means_phiv<-res_phiv%>%group_by(across(all_of(c("phiv","p1","p2"))))%>%summarise(across(col_list,mean))
+var_phiv<-res_phiv%>%group_by(across(all_of(c("phiv","p1","p2"))))%>%summarise(across(col_list,var))
 beepr::beep(8)
 ```
 
 ```{r}
-phiv_ran1<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-phiv_ran2<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-phiv_regen<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+phiv_plot_1<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+phiv_plot_2<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+phiv_plot_3<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 # phiv_ran1+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-phiv_ran1/phiv_ran2/phiv_regen
+phiv_plot_1/phiv_plot_2/phiv_plot_3
 ```
 
 Increasing p1 only
@@ -270,20 +296,21 @@ future::plan(
       )
 res_p1<-future_pmap_dfr(params_p1,sim_par)
 means_p1<-res_p1%>%group_by(p1,p2)%>%summarise(across(col_list,mean))
+var_p1<-res_p1%>%group_by(p1,p2)%>%summarise(across(col_list,var))
 ```
 
 
 ```{r}
-p1_ran1<-ggplot(means_p1,aes_string(x="p1",y=col_list[1]))+geom_point()#+scale_y_continuous(limits=c(-0.5,0.5))
-p1_ran2<-ggplot(means_p1,aes_string(x="p1",y=col_list[2]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
-p1_ran3<-ggplot(means_p1,aes_string(x="p1",y=col_list[3]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
+p1_plot_1<-ggplot(means_p1,aes_string(x="p1",y=col_list[1]))+geom_point()#+scale_y_continuous(limits=c(-0.5,0.5))
+p1_plot_2<-ggplot(means_p1,aes_string(x="p1",y=col_list[2]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
+p1_plot_3<-ggplot(means_p1,aes_string(x="p1",y=col_list[3]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
 ```
 
 ```{r}
-p1_ran1/p1_ran2/p1_ran3
-p1_ran1
-p1_ran2
-p1_ran3
+p1_plot_1/p1_plot_2/p1_plot_3
+p1_plot_1
+p1_plot_2
+p1_plot_3
 ```
 
 Increasing p2 only
@@ -292,16 +319,17 @@ Increasing p2 only
 params_p2<-expand_grid(N=20,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p2=seq(0.1,1,0.01),p1=0.1,nsim=200)
 res_p2<-future_pmap_dfr(params_p2,sim_par)
 means_p2<-res_p2%>%group_by(p2,p1)%>%summarise(across(col_list,mean))
+var_p2<-res_p2%>%group_by(p2,p1)%>%summarise(across(col_list,var))
 ```
 
 ```{r}
-p2_ran1<-ggplot(means_p2,aes_string(x="p2",y=col_list[1]))+geom_point()#+scale_y_continuous(limits=c(-0.5,0.5))
-p2_ran2<-ggplot(means_p2,aes_string(x="p2",y=col_list[2]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
-p2_ran3<-ggplot(means_p2,aes_string(x="p2",y=col_list[3]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
+p2_plot_1<-ggplot(means_p2,aes_string(x="p2",y=col_list[1]))+geom_point()#+scale_y_continuous(limits=c(-0.5,0.5))
+p2_plot_2<-ggplot(means_p2,aes_string(x="p2",y=col_list[2]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
+p2_plot_3<-ggplot(means_p2,aes_string(x="p2",y=col_list[3]))+geom_point()#+scale_y_continuous(limits=c(-1,1))
 ```
 
 ```{r}
-p2_ran1/p2_ran2/p2_ran3
+p2_plot_1/p2_plot_2/p2_plot_3
 ```
 
 
@@ -322,6 +350,7 @@ future::plan(
 system.time(res_PrEP<-future_pmap_dfr(params_PrEP,sim_par))
 beepr::beep(8)
 means_PrEP<-res_PrEP%>%group_by(across(all_of(c("PrEP1","PrEP2","p1","p2"))))%>%summarise(across(col_list,mean), .groups = "keep")
+var_PrEP<-res_PrEP%>%group_by(across(all_of(c("PrEP1","PrEP2","p1","p2"))))%>%summarise(across(col_list,var), .groups = "keep")
 ```
 
 ```{r}
