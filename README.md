@@ -22,7 +22,7 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
 * plots
 * scale
 #### Output 
-
+"res": a 1 $\cross$ 18 dataframe 
 ### simpar.R
 A wrapper for sim.R that does repeated sampling for a particular set of parameters, implemented in parallel and outputs all results in a combined dataframe object.
 #### Usage
