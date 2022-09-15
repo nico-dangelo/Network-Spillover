@@ -12,10 +12,21 @@ The main function that generates the networks for each simulation run, computes 
 sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
 ```
 #### Arguments
-*
+* N
+* eprob
+* phiv
+* PrEP1
+* PrEP2
+* p1
+* p2
+* plots
+* scale
 #### Output 
 
 ### simpar.R
 A wrapper for sim.R that does repeated sampling for a particular set of parameters, implemented in parallel and outputs all results in a combined dataframe object.
+#### Usage
+#### Arguments
+#### Value
 
 ### simnets.rmd 
