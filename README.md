@@ -7,7 +7,7 @@ Functions for estimation of causal effects under spillover on networks of PrEP o
 ### sim.R
 #### Description
 The main function that generates the networks for each simulation run, computes the effect estimates and causal contrasts, and generates network plots.
-Currently generates 4 networks and computes estimates the overall effect of 2 levels of PrEP allocation on HIV risk.
+Currently generates 4 (Erdős–Rényi model ) networks and computes estimates the overall effect of 2 levels of PrEP allocation on HIV risk.
 #### Usage
 ```{r}
 sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
