@@ -2,7 +2,7 @@
 Functions for estimation of causal effects under spillover on networks of PrEP on HIV risk
 ## Contents 
 * [sim.R](/sim.R)
-* [simpar.R](/simpar.R)
+* [sim_par.R](/sim_par.R)
 * [simnets.rmd](/simnets.rmd)
 ### sim.R
 #### Description
@@ -39,7 +39,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * add: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
 * regen: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
 
-### simpar.R
+### sim_par.R
 A wrapper for sim.R that performs repeated sampling for a particular set of parameters, implemented in parallel (using the "furrr" package) and outputs all results in a combined dataframe object.
 #### Usage
 ```{r}
