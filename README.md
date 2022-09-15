@@ -10,7 +10,7 @@ The main function that generates the networks for each simulation run, computes 
 Currently generates 4 [Erdős–Rényi random graph](https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model) networks and computes estimates the overall effect of 2 levels of PrEP allocation on HIV risk.
 #### Usage
 ```{r}
-sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
+sim(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
 ```
 #### Arguments
 * N: the network size/graph order. Must be a positive integer. Default is 20.
@@ -42,7 +42,12 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 ### simpar.R
 A wrapper for sim.R that does repeated sampling for a particular set of parameters, implemented in parallel and outputs all results in a combined dataframe object.
 #### Usage
+```{r}
+sim_par(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=100, scale="additive")
+```
 #### Arguments
+* arguments to be passed to sim()
+* nsim: the number of simulations to be run for each combination of other parameters. Must be a positive integer. Default is 100.
 #### Value
-
+An nsim $\times$ 19 dataframe containing the same outputs as sim() with an index nsim for the set (number of simulations) to which an output row belongs.
 ### simnets.rmd 
