@@ -38,7 +38,7 @@ options(future.rng.onMisuse="ignore")
 ## Parameters
 
 ```{r params}
-N<-20 #network population/ graph order
+N<-50 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
 phiv<-0.1 # underlying hiv prevalence
 PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
@@ -162,12 +162,7 @@ Trying to parallellize sim rather than use simpar, use rerun from purrr?
 Don't use rerun, use a map with sim_par?
 
 ```{r}
-
-# testing<-rerun(nsim,future_map_dfr(params,sim))
-# testing<-future_pmap_dfr(params,sim_par)
-# test_slice<-testing%>%group_by(p1,p2)%>%slice(1:nsim)
 col_list=c("ran","add","regen")
-# test_means<-testing%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
 ```
 
 
@@ -215,7 +210,7 @@ N_plot_3
 N_plot_4<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 N_plot_5<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
 N_plot_6<-ggplot(var_N,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~N)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
-N_plot4/N_plot5/N_plot6
+N_plot_4/N_plot_5/N_plot_6
 ```
 
 
@@ -280,6 +275,11 @@ phiv_plot_3<-ggplot(means_phiv,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_
 phiv_plot_1/phiv_plot_2/phiv_plot_3
 ```
 
+```{r}
+phiv_plot_4<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))
+phiv_plot_4
+```
+
 Increasing p1 only
 
 ```{r}
@@ -336,17 +336,18 @@ p2_plot_1/p2_plot_2/p2_plot_3
 Increasing PrEP1 and PrEP2
 ```{r}
 params_PrEP<-expand_grid(N=20,phiv=0.1,PrEP1=seq(0.1,1,0.1),PrEP2=seq(0.1,1,0.1),p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)%>%filter(PrEP2>PrEP1)
-#%>%filter(PrEP2>PrEP1)
-future::plan(
-      list(
-        future::tweak(
-          future::multisession, 
-          workers = 4), 
-        future::tweak(
-          future::multisession,
-          workers = 6)
-        )
-      )
+# plan(multisession(workers = availableCores()))
+# future::plan(
+#       list(
+#         future::tweak(
+#           future::multisession, 
+#           workers = 4), 
+#         future::tweak(
+#           future::multisession,
+#           workers = 6)
+#         )
+#       )
+
 system.time(res_PrEP<-future_pmap_dfr(params_PrEP,sim_par))
 beepr::beep(8)
 means_PrEP<-res_PrEP%>%group_by(across(all_of(c("PrEP1","PrEP2","p1","p2"))))%>%summarise(across(col_list,mean), .groups = "keep")
