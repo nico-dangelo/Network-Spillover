@@ -30,7 +30,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * h: Random assignment of PrEP2 coverage on the control network.
 * j: Fix the PrEP1 assignment from g, assign the remaining (PrEP2-PrEP1) coverage at random to additional susceptible nodes.
 * k: Regenerate a new network with phiv prevalence and assign PrEP2 coverage at random to susceptible nodes. 
-##### Effect estimates
+##### Counterfactual estimates
 * prep vector contains hiv_given_prep_.: the estimated probability of hiv given a node is assigned to PrEP.
 * no_prep vector contains hiv_given_no_prep_.:  the estimated probability of hiv given a node is not assigned to PrEP.
 
