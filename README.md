@@ -51,3 +51,6 @@ sim_par(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=100, sc
 #### Value
 An nsim $\times$ 19 dataframe containing the same outputs as sim() with an index nsim for the set (number of simulations) to which an output row belongs.
 ### simnets.rmd 
+#### Description
+An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
+
