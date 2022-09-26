@@ -212,25 +212,65 @@ We can now compute and compare the effect of 20\% PrEP coverage vs. 10\% PrEP co
     \end{tabular}                                      \end{center}
 \section{Simulation Methods}
 Simulations were implemented in R 4.2.1. All code and figure files are available in the GitHub repository: \href{https://github.com/nico-dangelo/Network-Spillover}{Network Spillover}.
-Erdos-Renyi network graphs for each scenario were generated using igraph version 1.3.2
+Erdős–Rényi random  network graphs for each scenario were generated using igraph version 1.3.2
 \section{Results}
 We now display simulation results for various parameter combinations.
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+    \hline
+         Parameter & Default Value & Range Considered  \\
+         \hline
+         Network size $N$& 20 & $\Set{20,50,200}$\\
+         \hline
+         ER Edge Formation probability "eprob" & 0.1 & Fixed \\
+         \hline
+         HIV prevalence "phiv" & 0.1 & $[0.1,0.8]$\\
+         \hline
+         Control PrEP Coverage "PrEP1" & 0.2 & $[0.1,1]$\\
+         \hline
+         Counterfactual PrEP Coverage "PrEP2" & 0.4 & $[0.1,1]$\\
+         \hline
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP}^{c}\right]$ $p1$ & 0.2 & $[0.1,1]$\\
+         \hline
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP}\right]$ $p2$ & 0.1 & $[0.1,1]$\\
+         \hline
+         Re-sampling sample size "nsim" & 100 & $\Set{100,1000,10000}$\\
+         \hline
+    \end{tabular}
+\end{center}
 \subsection{Effect Modification by Network Size}
-In results below, edge formation probability is 0.1, HIV prevalence is 0.1, replication sample size is 100, and PrEP allocations are 20\% and 40\%.
-\begin{figure}
+\begin{figure}[H]
     \centering
-    \includegraphics[scale=0.7]{Figures/Network Size Mean Plot.png}
+    \includegraphics[scale=0.8]{Figures/Network Size Mean Plot.png}
     \caption{Mean Causal Contrast estimates stratified by Network Size/Graph Order. From top to bottom: "add" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
     \label{fig:Figure 7}
 \end{figure}
-\begin{figure}
+\begin{figure}[H]
     \centering
-    \includegraphics[scale=0.7]{Figures/HIV Prevalence Variance plots.png}
-    \caption{Caption}
+    \includegraphics[scale=0.8]{Figures/Network Size Variance plots.png}
+    \caption{Variance of Causal Contrast estimates stratified by Network Size/Graph Order. From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 8}
 \end{figure}
 \subsection{Effect Modification by Sample Size}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.8]{Figures/Sample size Mean plots.png}
+    \caption{Caption}
+    \label{fig:Figure 9}
+\end{figure}
 \subsection{Effect Modification by HIV Prevalence}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.8]{Figures/HIV Prevalence Mean plots.png}
+    \caption{Caption}
+    \label{fig:Figure 9}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{Figures/HIV Prevalence Variance plots.png}
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
 \subsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}^{c}\right]$}
 \subsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$}
 
