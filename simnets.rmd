@@ -60,14 +60,14 @@ l_hiv_g<-round((gorder(g)*phiv),0)
 l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
 l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
 vertex_attr(g) <- list(color=c(rep("red", l_hiv_g), rep("blue",l_PrEP1_g), rep("black",l_sus_g)))
-if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=layout_nicely(g))}
+if(plots){coords=layout_nicely(g); plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=coords)}
 inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
 #compute P(HIV|PrEP)
 treat_g<-V(g)[V(g)$color=="blue"]
 treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color=="blue")]
 g<-set_vertex_attr(g,name="color",index=inf_contact_g,value="orange")
 g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
-if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=layout_nicely(g))}
+if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=coords)}
 inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
 hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
 #Compute P(HIV|-PrEP)
@@ -79,14 +79,14 @@ l_hiv_h<-round((gorder(g)*phiv),0)
 l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
 l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
 h<-set_vertex_attr(g,"color",value=c(rep("red",l_hiv_h), sample(c(rep("blue",l_PrEP2_h), rep("black", l_sus_h)))))
-if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=layout_nicely(h))}
+if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=coords)}
 inf_contact_h<-setdiff(unlist(adjacent_vertices(h,v=V(h)[color=="red"])), V(h)[color=="red"])
 #Compute P(HIV|PrEP)
 treat_h<-V(h)[V(h)$color=="blue"]
 treat_inf_contact_h<-V(h)[inf_contact_h][which(V(h)[inf_contact_h]$color=="blue")]
 h<-set_vertex_attr(h,name="color",index=inf_contact_h,value="orange")
 h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
-if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=layout_nicely(h))}
+if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=coords)}
 hiv_given_prep_h<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
 #Compute P(HIV|-PrEP)
 no_treat_h<-V(h)[V(h)$color%in% c("black","orange")]
@@ -97,14 +97,14 @@ l_hiv_j<-round((gorder(g)*phiv),0)
 l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
 l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
 j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
-if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=layout_nicely(j))}
+if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=coords)}
 inf_contact_j<-setdiff(unlist(adjacent_vertices(j,v=V(j)[color=="red"])), V(j)[color=="red"])
 #compute (HIV|PrEP)
 treat_j<-V(j)[V(j)$color=="blue"]
 treat_inf_contact_j<-V(j)[inf_contact_j][which(V(j)[inf_contact_j]$color=="blue")]
 j<-set_vertex_attr(j,name="color",index=inf_contact_j,value="orange")
 j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
-if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=layout_nicely(j))}
+if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=coords)}
 hiv_given_prep_j<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
 #Compute P(HIV|-PrEP)
 no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
@@ -116,14 +116,14 @@ l_hiv_k<-round((gorder(k)*phiv),0)
 l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
 l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
 vertex_attr(k) <- list(color =c(rep("red", l_hiv_k), rep("blue",l_PrEP2_k), rep("black", l_sus_k)))
-if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=layout_nicely(k))}
+if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=coords)}
 inf_contact_k<-setdiff(unlist(adjacent_vertices(k,v=V(k)[color=="red"])), V(k)[color=="red"])
 #Compute P(HIV|PrEP)
 treat_k<-V(k)[V(k)$color=="blue"]
 treat_inf_contact_k<-V(k)[inf_contact_k][which(V(k)[inf_contact_k]$color=="blue")]
 k<-set_vertex_attr(k,name="color",index=inf_contact_k,value="orange")
 k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
-if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=layout_nicely(k))}
+if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=coords)}
 hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
 #Compute P(HIV|-PrEP)
 no_treat_k<-V(k)[V(k)$color%in% c("black","orange")]
