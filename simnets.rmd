@@ -86,6 +86,7 @@ treat_h<-V(h)[V(h)$color=="blue"]
 treat_inf_contact_h<-V(h)[inf_contact_h][which(V(h)[inf_contact_h]$color=="blue")]
 h<-set_vertex_attr(h,name="color",index=inf_contact_h,value="orange")
 h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
+if(plots){plot(h,vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random overall", layout=layout_nicely(h))}
 hiv_given_prep_h<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
 #Compute P(HIV|-PrEP)
 no_treat_h<-V(h)[V(h)$color%in% c("black","orange")]
@@ -103,6 +104,7 @@ treat_j<-V(j)[V(j)$color=="blue"]
 treat_inf_contact_j<-V(j)[inf_contact_j][which(V(j)[inf_contact_j]$color=="blue")]
 j<-set_vertex_attr(j,name="color",index=inf_contact_j,value="orange")
 j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
+if(plots){plot(j,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Random additional", layout=layout_nicely(j))}
 hiv_given_prep_j<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
 #Compute P(HIV|-PrEP)
 no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
@@ -121,6 +123,7 @@ treat_k<-V(k)[V(k)$color=="blue"]
 treat_inf_contact_k<-V(k)[inf_contact_k][which(V(k)[inf_contact_k]$color=="blue")]
 k<-set_vertex_attr(k,name="color",index=inf_contact_k,value="orange")
 k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
+if(plots){plot(k,  vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Regenerated", layout=layout_nicely(k))}
 hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
 #Compute P(HIV|-PrEP)
 no_treat_k<-V(k)[V(k)$color%in% c("black","orange")]
@@ -235,12 +238,16 @@ system.time(res_samp<-future_pmap_dfr(params_samp,sim_par))
 means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,mean))
 var_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(col_list,var))
 beepr::beep(8)
+save(res_samp,means_samp,var_samp,file="Sample size results.RData")
 ```
+#Mean plots
+
 
 ```{r}
-samp_plot_1<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by sample size")
-samp_plot_2<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by sample size")
-samp_plot_3<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by sample size")
+lims_means_samp<-c(min(means_samp[,col_list]),max(means_samp[,col_list]))
+samp_plot_1<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_means_samp, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by sample size")
+samp_plot_2<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits= lims_means_samp, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by sample size")
+samp_plot_3<-ggplot(means_samp,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_means_samp, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by sample size")
 ```
 
 ```{r}
@@ -251,10 +258,19 @@ samp_plot_2/samp_plot_1/samp_plot_3
 ggsave(plot=samp_plot_2/samp_plot_1/samp_plot_3, filename = "Sample size Mean plots.png", path ="Figures/")
 ```
 
+variance plots
+```{r}
+lims_var_samp<-c(min(var_samp[,col_list]),max(var_samp[,col_list]))
+samp_plot_4<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+ggtitle("Variance of Contrast Estimate in random PrEP allocation by sample size")+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+samp_plot_5<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+ggtitle("Variance of Contrast Estimate in random additional PrEP allocation by sample size")+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+samp_plot_6<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+ggtitle("Variance of Contrast Estimate in random regenerated PrEP allocation by sample size")+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ggsave(plot=samp_plot_5/samp_plot_4/samp_plot_6, file="Sample Size Variance plots.png", path="Figures")
+```
+
+
 increase underlying HIV prevalence phiv
 
 ```{r}
-
 params_phiv<-expand.grid(N=20,phiv=seq(0.1,1,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
 future::plan(
       list(
@@ -270,6 +286,7 @@ res_phiv<-future_pmap_dfr(params_phiv,sim_par)
 means_phiv<-res_phiv%>%group_by(across(all_of(c("phiv","p1","p2"))))%>%summarise(across(col_list,mean))
 var_phiv<-res_phiv%>%group_by(across(all_of(c("phiv","p1","p2"))))%>%summarise(across(col_list,var))
 beepr::beep(8)
+save(res_phiv,means_phiv,var_phiv,file="HIV Prevalence Results.RData")
 ```
 
 ```{r}
@@ -282,9 +299,9 @@ beepr::beep(8)
 
 ```{r}
 lims_means_phiv<-c(min(means_phiv[means_phiv$phiv<0.9,col_list]),max(means_phiv[means_phiv$phiv<0.9,col_list]))
-phiv_plot_4<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10, colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by HIV prevalence")
-phiv_plot_5<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by HIV prevalence")
-phiv_plot_6<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random regenerated PrEP allocation by HIV prevalence")
+phiv_plot_4<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+scale_x_continuous(guide = guide_axis(n.dodge=2))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10, colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by HIV prevalence")
+phiv_plot_5<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random additional PrEP allocation by HIV prevalence")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+phiv_plot_6<-means_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_means_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random regenerated PrEP allocation by HIV prevalence")+scale_x_continuous(guide = guide_axis(n.dodge=2))
 ggarrange(phiv_plot_4/phiv_plot_5/phiv_plot_6)
 ggsave(plot=phiv_plot_5/phiv_plot_4/phiv_plot_6, file="HIV Prevalence Mean plots.png", path="Figures/")
 ```
@@ -293,9 +310,9 @@ Variance plots
 
 ```{r}
 lims_var_phiv<-c(min(var_phiv[var_phiv$phiv<0.9,col_list]),max(var_phiv[var_phiv$phiv<0.9,col_list]))
-phiv_plot_7<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10, colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random PrEP allocation by HIV prevalence")
-phiv_plot_8<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random additional PrEP allocation by HIV prevalence")
-phiv_plot_9<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random regenerated PrEP allocation by HIV prevalence")
+phiv_plot_7<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10, colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random PrEP allocation by HIV prevalence")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+phiv_plot_8<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random additional PrEP allocation by HIV prevalence")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+phiv_plot_9<-var_phiv%>%filter(phiv<0.9)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(~phiv)+scale_fill_gradientn(limits=lims_var_phiv,n.breaks=10,colors=brewer.pal(10,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast estimate Variance in random regenerated PrEP allocation by HIV prevalence")+scale_x_continuous(guide = guide_axis(n.dodge=2))
 ggsave(plot=phiv_plot_8/phiv_plot_7/phiv_plot_9, file="HIV Prevalence Variance plots.png", path="Figures/")
 ```
 
@@ -309,6 +326,7 @@ future::plan("multisession",workers=future::availableCores())
 res_p1<-future_pmap_dfr(params_p1,sim_par)
 means_p1<-res_p1%>%group_by(p1,p2)%>%summarise(across(col_list,mean))
 var_p1<-res_p1%>%group_by(p1,p2)%>%summarise(across(col_list,var))
+save(res_p1,means_p1,var_p1,file="p1 Results.RData")
 ```
 
 Means plots
@@ -347,6 +365,7 @@ params_p2<-expand_grid(N=20,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p2=seq(0.1,1,0.01),
 res_p2<-future_pmap_dfr(params_p2,sim_par)
 means_p2<-res_p2%>%group_by(p2,p1)%>%summarise(across(col_list,mean))
 var_p2<-res_p2%>%group_by(p2,p1)%>%summarise(across(col_list,var))
+save(res_p2,means_p2,var_p2,file="p2 Results.RData")
 ```
 
 Means plots
