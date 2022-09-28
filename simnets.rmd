@@ -35,7 +35,7 @@ options(future.rng.onMisuse="ignore")
 ## Parameters
 
 ```{r params}
-N<-50 #network population/ graph order
+N<-20 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
 phiv<-0.1 # underlying hiv prevalence
 PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
@@ -46,13 +46,14 @@ p2<-0.1 #P(HIV|Contact and PrEP)
 nsim<-100
 plots=T
 scale="additive"
+params<-list(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
 ```
 
 ## Simulation Function
 
 ```{r simulation}
 sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive"){
-  #parameter check
+   #parameter check
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
 g <- sample_gnp(N,eprob)
@@ -74,6 +75,14 @@ hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/len
 no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
 no_treat_inf_contact_g<-V(g)[V(g)$color=="orange"]
 hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
+#Network Summary Statistics
+B_g<-mean(betweenness(g))# Average Betweenness Centrality
+D_g<-edge_density(g)#Density
+C_g<-centr_degree(g)$centralization#Degree Centralization
+G_g<-mean_distance(g)#Average geodesic distance
+T_g<-transitivity(g)#Transitivity/Clustering
+stats_g<-c(B_g,D_g,C_g,G_g,T_g)
+names(stats_g)<-c("Avg. Betweenness g","Density g","Degree Centralization g","Avg. Geodesic Distance g","Transitivity g")
 #Randomly assign 20% overall (shuffle attributes)
 l_hiv_h<-round((gorder(g)*phiv),0)
 l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
@@ -129,6 +138,14 @@ hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/len
 no_treat_k<-V(k)[V(k)$color%in% c("black","orange")]
 no_treat_inf_contact_k<-V(h)[V(h)$color=="orange"]
 hiv_given_no_prep_k<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
+#Network Summary Statistics
+B_k<-mean(betweenness(k))# Average Betweenness Centrality
+D_k<-edge_density(k)#Density
+C_k<-centr_degree(k)$centralization#Degree Centralization
+G_k<-mean_distance(k)#Average geodesic distance
+T_k<-transitivity(k)#Transitivity/Clustering
+stats_k<-c(B_k,D_k,C_k,G_k,T_k)
+names(stats_k)<-c("Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k","Transitivity k")
 # Combine effect estimates
 prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
 names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
@@ -143,8 +160,8 @@ if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))}
 #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
 # }
 names(cc)<-c("ran","add","regen")
-res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc)
-names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(prep), names(no_prep),names(cc))
+res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
+names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
 return(res)
 }
 ```
