@@ -23,7 +23,7 @@ sim(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="
 * plots: A flag indicating whether to display network plots for each scenario. Must be a logical. Default is FALSE.
 * scale: Indicates whether to compute effect estimates on an additive or multiplicative scale. Must be a string in {"additive", "multiplicative"}. Default is "addtive".
 #### Output 
-"res": a 1 $\times$ 18 dataframe containing input parameters (N,eprob,phiv,PrEP1,PrEP2,p1,p2), 
+"res": a 1 $\times$ 36 dataframe containing input parameters (N,eprob,phiv,PrEP1,PrEP2,p1,p2), 
 effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add, regen) for each network/scenario.
 ##### Scenarios
 * g: Control network with HIV prevalence phiv, with random allocation of PrEP1 coverage to susceptible nodes. 
