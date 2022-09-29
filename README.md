@@ -46,7 +46,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * [Degree Centralization](https://en.wikipedia.org/wiki/Centrality#Degree_centrality)
 * Average [Geodesic Distance](https://en.wikipedia.org/wiki/Distance_(graph_theory))
 * Transitivity:The proportion of all triads that exhibit closure/ form a complete triangle.
-* Proportion of nodes in [2-cores](https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#k-Cores)
+* Proportion of nodes in [2-cores](https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#k-Cores) \
 For graphs g (control) and k (regenerated)
 ### sim_par.R
 A wrapper for sim.R that performs repeated sampling for a particular set of parameters, implemented in parallel (using the "furrr" package) and outputs all results in a combined dataframe object.
