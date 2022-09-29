@@ -39,6 +39,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * add: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
 * regen: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
 ##### Network Summary Statistics
+* Number of Connected Components in gra
 * Average Betweenness Centrality
 * Edge Density
 * Degree Centralization
