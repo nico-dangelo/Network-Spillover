@@ -38,7 +38,12 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * ran: On additive scale, the difference (prep[h]+no_prep[h])-(prep[g]+no_prep[g]).
 * add: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
 * regen: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
-
+##### Network Summary Statistics
+* Average Betweenness Centrality
+* Edge Density
+* Degree Centralization
+* Average Geodesic Distance
+* Transitivity
 ### sim_par.R
 A wrapper for sim.R that performs repeated sampling for a particular set of parameters, implemented in parallel (using the "furrr" package) and outputs all results in a combined dataframe object.
 #### Usage
