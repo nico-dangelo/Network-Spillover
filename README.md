@@ -44,7 +44,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * Average [Betweenness Centrality](https://en.wikipedia.org/wiki/Betweenness_centrality)
 * Edge [Density](https://en.wikipedia.org/wiki/Dense_graph)
 * [Degree Centralization](https://en.wikipedia.org/wiki/Centrality#Degree_centrality)
-* Average [Geodesic Distance](https://en.wikipedia.org/wiki/Distance_(graph_theory)
+* Average [Geodesic Distance](https://en.wikipedia.org/wiki/Distance_(graph_theory))
 * Transitivity:The proportion of all triads that exhibit closure/ form a complete triangle.
 * Proportion of nodes in [2-cores](https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#k-Cores)
 For graphs g (control) and k (regenerated)
