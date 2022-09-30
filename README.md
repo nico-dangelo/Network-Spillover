@@ -53,7 +53,7 @@ For graphs g (control) and k (regenerated)
 A wrapper for sim.R that performs repeated sampling for a particular set of parameters, implemented in parallel (using the "furrr" package) and outputs all results in a combined dataframe object.
 #### Usage
 ```{r}
-sim_par(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, nsim=100, scale="additive")
+sim_par(...)
 ```
 #### Arguments
 * arguments to be passed to sim()
