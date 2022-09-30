@@ -56,7 +56,7 @@ A wrapper for sim.R that performs repeated sampling for a particular set of para
 sim_par(...)
 ```
 #### Arguments
-* arguments to be passed to sim()
+* ... arguments to be passed to sim()
 * nsim: the number of simulations to be run for each combination of other parameters. Must be a positive integer. Default is 100.
 #### Value
 An nsim $\times$ 19 dataframe containing the same outputs as sim() with an index nsim for the set (number of simulations) to which an output row belongs.
