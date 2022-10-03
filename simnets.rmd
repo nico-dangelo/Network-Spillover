@@ -28,7 +28,7 @@ require(RColorBrewer)
 require(ggforce)
 require(ggpubr)
 # plan("multisession", workers=24)
-set.seed(500)
+set.seed(1000)
 options(future.rng.onMisuse="ignore")
 ```
 
@@ -517,40 +517,92 @@ grid.arrange(plotlist_add[1],plotlist_ran[1],plotlist_regen[1])
 ```
 
 
-
-Below are failed attempts at parallelization DO NOT USE
+Change network generative model with defaults
 ```{r}
-# # #sweep p1 only
-# res3<-foreach(p1=seq(0.1,1,0.1) ) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
-# # #sweep p2 only
-# res4<-foreach(p2=seq(0.1,1,0.1)) %:% foreach(icount(nsim), .combine=rbind) %dopar% {sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2)}
+params_model<-expand.grid(N=20,phiv=0.1,model=c("ER","BA"),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200, stringsAsFactors = F)
+res_model<-future_pmap_dfr(params_model,sim_par)
+means_model<-res_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,mean))
+var_model<-res_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,var))
+```
+
+
+Means plots
+```{r}
+lims_means_model<-c(min(means_model[,col_list]),max(means_model[,col_list]))
+model_plot_1<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_2<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_3<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_2/model_plot_1/model_plot_3
+```
+Variance plots
+```{r}
+lims_var_model<-c(min(var_model[,col_list]),max(var_model[,col_list]))
+model_plot_4<-ggplot(var_model,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_5<-ggplot(var_model,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_6<-ggplot(var_model,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_plot_5/model_plot_4/model_plot_6
+```
+
+Network summary statistics-version 1
+
+```{r}
+model_plot_7<-ggboxplot(res_model,x="model",y=c("Number of Components g","Number of Components k"),ylab=F, merge = T)
+model_plot_8<-ggboxplot(res_model,x="model",y=c("Largest Component Size g","Largest Component Size k"),ylab=F,merge=T)
+model_plot_9<-ggboxplot(res_model,x="model", y=c("Avg. Betweenness g","Avg. Betweenness k"),ylab=F,merge=T)
+model_plot_10<-ggboxplot(res_model,x="model",y=c("Density g","Density k"),ylab=F, merge = T)
+model_plot_11<-ggboxplot(res_model,x="model",y=c("Degree Centralization g","Degree Centralization k"),ylab=F, merge = T)
+model_plot_12<-ggboxplot(res_model,x="model",y=c("Avg. Geodesic Distance g","Avg. Geodesic Distance k"),ylab=F, merge = T)
+model_plot_13<-ggboxplot(res_model,x="model",y=c("Diameter g","Diameter k"),ylab=F, merge = T)
+model_plot_14<-ggboxplot(res_model,x="model",y=c("Transitivity g","Transitivity k"),ylab=F,merge=T)
+model_plot_15<-ggboxplot(res_model,x="model",y=c("Proportion of nodes in 2-cores g","Proportion of nodes in 2-cores k"),ylab=F,merge=T)
+model_plot_16<-ggboxplot(res_model,x="model",y=c("Degree Assortativity g","Degree Assortativity k"),ylab=F,merge=T)
+model_plot_7+model_plot_8+model_plot_9+model_plot_10+model_plot_12+model_plot_13+model_plot_14+model_plot_15
 ```
 
 
 ```{r}
-# l1<-as.list(seq(0.1,1,0.1))
-# l2<-as.list(seq(0.1,1,0.1))
-# res5<-foreach(p1=l1, .combine=rbind) %:% foreach(p2=l2, .combine=rbind) %do% {sim_par(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2, nsim=100)}
+c("Number of Components g","Largest Component Size g", "Avg. Betweenness g","Density g","Degree Centralization g","Avg. Geodesic Distance g", "Diameter g", "Transitivity g","Proportion of nodes in 2-cores g", "Degree Assortativity g")
 ```
+
+
+Change ER edge probability
+```{r}
+params_eprob<-expand.grid(N=20,eprob=seq(0.1,1,0.1),phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=200)
+res_eprob<-future_pmap_dfr(params_eprob,sim_par)
+means_eprob<-res_eprob%>%group_by(across(all_of(c("eprob","p1","p2"))))%>%summarise(across(col_list,mean))
+var_eprob<-res_eprob%>%group_by(across(all_of(c("eprob","p1","p2"))))%>%summarise(across(col_list,var))
+```
+
+Means plots
+```{r}
+lims_means_eprob<-c(min(means_eprob[,col_list]),max(means_eprob[,col_list]))
+eprob_plot_1<-ggplot(means_eprob,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_means_eprob,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~eprob)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+eprob_plot_2<-ggplot(means_eprob,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_means_eprob,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~eprob)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+eprob_plot_3<-ggplot(means_eprob,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_means_eprob,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~eprob)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+eprob_plot_2/eprob_plot_1/eprob_plot_3
+```
+
+Change BA preferential attachment power
 
 ```{r}
-# params<-tidyr::expand_grid(N=c(20,200,2000,20000),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim)
-# res_grid<-purrr::pmap_dfr(params,sim_par)
-# beepr::beep()
+params_p<-expand.grid(N=50,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",p=seq(0.1,1,0.1), nsim=200,stringsAsFactors = F)
+res_p<-future_pmap_dfr(params_p,sim_par)
+means_p<-res_p%>%group_by(across(all_of(c("p","p1","p2"))))%>%summarise(across(col_list,mean))
+var_p<-res_p%>%group_by(across(all_of(c("p","p1","p2"))))%>%summarise(across(col_list,var))
 ```
 
+Means plots
+```{r}
+lims_means_p<-c(min(means_p[,col_list]),max(means_p[,col_list]))
+p_plot_1<-ggplot(means_p,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_means_p,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~p)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+p_plot_2<-ggplot(means_p,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_means_p,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~p)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+p_plot_3<-ggplot(means_p,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_means_p,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~p)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_continuous(guide = guide_axis(n.dodge=2))
+p_plot_2/p_plot_1/p_plot_3
+```
+
+Link TRansmission Centrality
 
 ```{r}
-# col_list<-names(res_grid)[4:6]
-# # means<-res5%>%group_by(p1,p2)%>%summarise_each(mean,c(ran20, `ran10+10`,regen))
-# means<-res_grid%>%group_by(N,p1,p2)%>%summarise(across(col_list,mean))
+
 ```
-
-
-
-
-
-
-
-
 
