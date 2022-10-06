@@ -1,9 +1,13 @@
 library(igraph)
-sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive"){
+sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","SW"),eprob=0.1,pow=1,nb=5,rprob=0.05){
+  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob)
+  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","scale","model","eprob","pow","nb","rprob")
   #parameter check
+  scale<-match.arg(scale)
+  model<-match.arg(model)
   # plot a random graph, 3 color options
   #control scenario graph, 10% assignment prob
-  g <- sample_gnp(N,eprob)
+  g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_g<-round((gorder(g)*phiv),0)
   l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
   l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
@@ -59,7 +63,7 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
   no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
   hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
   # plot a random graph, 3 color options
-  k <- sample_gnp(N,eprob)
+  k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_k<-round((gorder(k)*phiv),0)
   l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
   l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
@@ -78,20 +82,32 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
   no_treat_inf_contact_k<-V(h)[V(h)$color=="orange"]
   hiv_given_no_prep_k<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
   #Network Summary Statistics
-  B_g<-mean(betweenness(g))# Average Betweenness Centrality
-  D_g<-edge_density(g)#Density
-  C_g<-centr_degree(g)$centralization#Degree Centralization
-  G_g<-mean_distance(g)#Average geodesic distance
-  T_g<-transitivity(g)#Transitivity/Clustering
-  stats_g<-c(B_g,D_g,C_g,G_g,T_g)
-  names(stats_g)<-c("Avg. Betweenness g","Density g","Degree Centralization g","Avg. Geodesic Distance g","Transitivity g")
-  B_k<-mean(betweenness(k))# Average Betweenness Centrality
-  D_k<-edge_density(k)#Density
-  C_k<-centr_degree(k)$centralization#Degree Centralization
-  G_k<-mean_distance(k)#Average geodesic distance
-  T_k<-transitivity(k)#Transitivity/Clustering
-  stats_k<-c(B_k,D_k,C_k,G_k,T_k)
-  names(stats_k)<-c("Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k","Transitivity k")
+  stats_g<-c(
+    Co_g<-count_components(g), #Number of Components
+    Cs_g<-max(components(g)$csize),#Largest Component Size
+    B_g<-mean(betweenness(g)),# Average Betweenness Centrality
+    De_g<-edge_density(g),#Density
+    Ce_g<-centr_degree(g)$centralization,#Degree Centralization
+    G_g<-mean_distance(g),#Average geodesic distance
+    Di_g<-diameter(g),#Network Diameter
+    T_g<-transitivity(g),#Transitivity/Clustering
+    K_g<-sum(coreness(g)==2)/length(coreness(g)),#Proportion of nodes in 2-cores
+    As_g<-assortativity_degree(g,directed=F) #Degree Assortativity
+  )
+  names(stats_g)<-c("Number of Components g","Largest Component Size g", "Avg. Betweenness g","Density g","Degree Centralization g","Avg. Geodesic Distance g", "Diameter g", "Transitivity g","Proportion of nodes in 2-cores g", "Degree Assortativity g")
+  stats_k<-c(
+    Co_k<-count_components(k), #Number of Components
+    Cs_k<-max(components(k)$csize),#Largest Component Size
+    B_k<-mean(betweenness(k)),# Average Betweenness Centrality
+    De_k<-edge_density(k),#Density
+    Ce_k<-centr_degree(k)$centralization,#Degree Centralization
+    G_k<-mean_distance(k),#Average geodesic distance
+    Di_k<-diameter(k),#Network Diameter
+    T_k<-transitivity(k),#Transitivity/Clustering
+    K_k<-sum(coreness(k)==2)/length(coreness(k)),#Proportion of nodes in 2-cores,
+    As_k<-assortativity_degree(k,directed=F) #Degree Assortativity
+  )
+  names(stats_k)<-c("Number of Components k","Largest Component Size k", "Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k", "Diameter k", "Transitivity k","Proportion of nodes in 2-cores k", "Degree Assortativity k")
   # Combine effect estimates
   prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
   names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
@@ -106,7 +122,7 @@ sim<-function(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=
   #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
   # }
   names(cc)<-c("ran","add","regen")
-  res<-cbind(N,eprob,phiv,PrEP1,PrEP2,p1,p2,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
-  names(res)<-c("N","eprob","phiv", "PrEP1","PrEP2","p1","p2",names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
+  res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
+  names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
   return(res)
 }

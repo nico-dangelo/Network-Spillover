@@ -27,7 +27,7 @@ require(RColorBrewer)
 # require(gganimate)
 require(ggforce)
 require(ggpubr)
-# plan("multisession", workers=24)
+plan("multisession", workers=availableCores()/2)
 set.seed(1000)
 options(future.rng.onMisuse="ignore")
 ```
@@ -35,10 +35,12 @@ options(future.rng.onMisuse="ignore")
 ## Parameters
 
 ```{r params}
-N<-20 #network population/ graph order
-model="ER"
+N<-50 #network population/ graph order
+model="SW"
 eprob<-0.1 #edge formation probability for ER model 
-p<-1 #preferential attachment power for BA model
+pow<-1 #preferential attachment power for BA model
+nb<-20 # neighborhood parameter for small-world model
+rprob<-0.05 #rewiring probability for small-world model
 phiv<-0.1 # underlying hiv prevalence
 PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
 PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
@@ -46,21 +48,22 @@ PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
 p1<-0.2 #P(HIV|Contact and -PrEP)
 p2<-0.1 #P(HIV|Contact and PrEP)
 nsim<-100
-# plots=T
+plots=T
 scale="additive"
-# params<-list(N=20,eprob=0.1,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale="additive")
 ```
 
 ## Simulation Function
 
 ```{r simulation}
-sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA"),eprob=0.1,p=1){
+sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","SW"),eprob=0.1,pow=1,nb=5,rprob=0.05){
+  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob)
+  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","scale","model","eprob","pow","nb","rprob")
    #parameter check
 scale<-match.arg(scale)
 model<-match.arg(model)
 # plot a random graph, 3 color options
 #control scenario graph, 10% assignment prob
-g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=p,directed=FALSE)}
+g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
 l_hiv_g<-round((gorder(g)*phiv),0)
 l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
 l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
@@ -116,7 +119,7 @@ no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
 no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
 hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
 # plot a random graph, 3 color options
-k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=p,directed=FALSE)}
+k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
 l_hiv_k<-round((gorder(k)*phiv),0)
 l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
 l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
@@ -175,8 +178,8 @@ if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))}
 #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
 # }
 names(cc)<-c("ran","add","regen")
-res<-cbind(N,eprob,p,phiv,PrEP1,PrEP2,p1,p2,model,as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
-names(res)<-c("N","eprob","p","phiv", "PrEP1","PrEP2","p1","p2","model",names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
+res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
+names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
 return(res)
 }
 ```
@@ -184,8 +187,8 @@ return(res)
 ## Parallel resampling
 
 ```{r simulation parallel}
-sim_par<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, scale="additive",model="ER",eprob=0.1,p=1,nsim=100){
-res<-future_map_dfr(1:nsim,~sim(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2,scale=scale,model=model,eprob=eprob,p=p))
+sim_par<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, scale="additive",model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05,nsim=100){
+res<-future_map_dfr(1:nsim,~sim(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2,scale=scale,model=model,eprob=eprob,pow=pow,nb=nb,rprob=rprob))
 res<-cbind(res,nsim)
 return(res)}
 ```
@@ -585,7 +588,7 @@ eprob_plot_2/eprob_plot_1/eprob_plot_3
 Change BA preferential attachment power
 
 ```{r}
-params_p<-expand.grid(N=50,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",p=seq(0.1,1,0.1), nsim=200,stringsAsFactors = F)
+params_p<-expand.grid(N=50,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",pow=seq(0.1,1,0.1), nsim=200,stringsAsFactors = F)
 res_p<-future_pmap_dfr(params_p,sim_par)
 means_p<-res_p%>%group_by(across(all_of(c("p","p1","p2"))))%>%summarise(across(col_list,mean))
 var_p<-res_p%>%group_by(across(all_of(c("p","p1","p2"))))%>%summarise(across(col_list,var))
@@ -600,9 +603,47 @@ p_plot_3<-ggplot(means_p,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()
 p_plot_2/p_plot_1/p_plot_3
 ```
 
-Link TRansmission Centrality
-
+Varaince Plots
 ```{r}
 
+```
+
+
+Change Small-World neighborhood size
+
+```{r}
+#check sample size
+params_nb<-expand.grid(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), scale="additive",model="SW",eprob=eprob,pow=pow,nb=seq(5,N/2,5),rprob=rprob,stringsAsFactors = F)
+res_nb<-future_pmap_dfr(params_nb,sim_par)
+means_nb<-res_nb%>%group_by(across(all_of(c("nb","p1","p2"))))%>%summarise(across(col_list,mean))
+var_nb<-res_nb%>%group_by(across(all_of(c("nb","p1","p2"))))%>%summarise(across(col_list,var))
+
+```
+
+Means plots
+
+```{r}
+lims_means_nb<-c(min(means_nb[,col_list]),max(means_nb[,col_list]))
+nb_plot_1<-ggplot(means_nb,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_means_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+nb_plot_2<-ggplot(means_nb,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_means_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+nb_plot_3<-ggplot(means_nb,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_means_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+nb_plot_2/nb_plot_1/nb_plot_3
+
+```
+
+Variance Plots
+```{r}
+lims_var_nb<-c(min(var_nb[,col_list]),max(var_nb[,col_list]))
+nb_plot_4<-ggplot(var_nb,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_var_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+nb_plot_5<-ggplot(var_nb,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_var_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+nb_plot_6<-ggplot(var_nb,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_var_nb,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~nb)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+
+
+Change Small-World rewiring probability
+
+```{r}
+params_rprob<-expand.grid(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), scale="additive",model="SW",eprob=eprob,pow=pow,nb=nb,rprob=seq(0.05,1,0.05),stringsAsFactors = F)
+res_rprob<-future_pmap_dfr(params_rprob,sim_par)
 ```
 
