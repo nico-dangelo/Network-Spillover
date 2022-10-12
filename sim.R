@@ -1,5 +1,5 @@
 library(igraph)
-sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","SW"),eprob=0.1,pow=1,nb=5,rprob=0.05){
+sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
   args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob)
   names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","scale","model","eprob","pow","nb","rprob")
   #parameter check
@@ -7,7 +7,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   model<-match.arg(model)
   # plot a random graph, 3 color options
   #control scenario graph, 10% assignment prob
-  g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
+  g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_g<-round((gorder(g)*phiv),0)
   l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
   l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
@@ -63,7 +63,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
   hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
   # plot a random graph, 3 color options
-  k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="SW"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
+  k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_k<-round((gorder(k)*phiv),0)
   l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
   l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
