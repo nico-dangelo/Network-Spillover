@@ -53,6 +53,7 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * Transitivity:The proportion of all triads that exhibit closure/ form a complete triangle.
 * Proportion of nodes in [2-cores](https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#k-Cores) \
 For graphs g (control) and k (regenerated)
+* Degree [Assortativity](https://en.wikipedia.org/wiki/Assortativity)
 ### sim_par.R
 A wrapper for sim.R that performs repeated sampling for a particular set of parameters, implemented in parallel (using the "furrr" package) and outputs all results in a combined dataframe object.
 #### Usage
