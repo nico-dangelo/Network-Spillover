@@ -9,7 +9,7 @@ Functions for estimation of causal effects under spillover on networks of PrEP o
 ### sim.R
 #### Description
 The main function that generates the networks for each simulation run, computes the effect estimates and causal contrasts, and generates network plots.
-Currently generates 4 [Erdős–Rényi random graph](https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model), [Barabási-Albert scale-free](https://en.wikipedia.org/wiki/Barab%C3%A1si%E2%80%93Albert_model), or [Watts-Strogatz Small World](https://en.wikipedia.org/wiki/Watts%E2%80%93Strogatz_model) networks and computes estimates the overall effect of 2 levels of PrEP allocation on HIV risk.
+Currently generates 4 [Erdős–Rényi random graph](https://en.wikipedia.org/wiki/Erd%C5%91s%E2%80%93R%C3%A9nyi_model), [Barabási-Albert scale-free](https://en.wikipedia.org/wiki/Barab%C3%A1si%E2%80%93Albert_model), or [Watts-Strogatz small-world](https://en.wikipedia.org/wiki/Watts%E2%80%93Strogatz_model) networks and computes estimates the overall effect of 2 levels of PrEP allocation on HIV risk.
 #### Usage
 ```{r}
 sim(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","SW"),eprob=0.1,pow=1,nb=5,rprob=0.05)
@@ -24,7 +24,7 @@ sim(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive
 * p2: The probability of a node being infected with HIV given an infectious contact and being assigned to PrEP. Must be a double in $(0,1]$. Default is 0.1.
 * plots: A flag indicating whether to display network plots for each scenario. Must be a logical. Default is FALSE.
 * scale: Indicates whether to compute effect estimates on an additive or multiplicative scale. Must be a string in {"additive", "multiplicative"}. Default is "addtive".
-* model: Indicates the generating model that should be used for the networks. Must be one of: "ER" for Erdos-Renyi random graphs, "BA" for Barabási-Albert scale-free, or "WS" for   
+* model: Indicates the generating model that should be used for the networks. Must be one of: "ER" for Erdos-Renyi random graphs, "BA" for Barabási-Albert scale-free, or "WS" for Watts-Strogatz small-world.  
 
 #### Output 
 "res": a 1 $\times$ 36 dataframe containing input parameters (N,eprob,phiv,PrEP1,PrEP2,p1,p2), 
