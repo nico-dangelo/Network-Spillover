@@ -72,3 +72,5 @@ An Rmarkdown file that implements simulations across combinations of all paramet
 ### Data 
 #### Description 
 A folder containing RData files for all results, computed means, and variances for each parameter. Uses default arguments for non-graph-model parameters with ER graphs. For model-related parameters, uses $N=50$.
+### Shiny App
+####  Interactive Network plots with options for generative model and allocation parameters are available via the Shiny App [simnets](http://nico-dangelo.shinyapps.io/simnets?_ga=2.198510827.570187884.1665692175-808405130.1665692175) 
