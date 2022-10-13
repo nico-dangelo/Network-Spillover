@@ -69,3 +69,6 @@ An nsim $\times$ 37 dataframe containing the same outputs as sim() with an index
 #### Description
 An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
 
+### Data 
+#### Description 
+A folder containing RData files for all results, computed means, and variances for each parameter. Uses default arguments for non-graph-model parameters with ER graphs. For model-related parameters, uses $N=50$.
