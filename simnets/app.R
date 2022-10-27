@@ -36,7 +36,6 @@ ui <- fluidPage(
         selectInput("model", "Network Generative Model", 
                     choices = c("Erdős–Rényi random graph", "Barabási-Albert scale-free", "Watts-Strogatz small-world")
         ),
-        ),
         #model parameter tabs
         tabsetPanel(
           id = "params",
@@ -61,18 +60,21 @@ ui <- fluidPage(
                                min = 5,
                                max=50),
                    
-                  sliderInput("rprob",
-                              "rewiring probability",
-                              min=0.05,
-                              max=1, 
-                              value=0.05)
-                   )
+                   sliderInput("rprob",
+                               "rewiring probability",
+                               min=0.05,
+                               max=1, 
+                               value=0.05)
+          )
         ),
-    ),
+        ),
+        
+    
         # Show a plot of the generated network
         mainPanel(
            plotOutput("netPlot")
         )
+)
 )
 
 # Define server logic required to draw network plot
