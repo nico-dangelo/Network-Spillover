@@ -8,7 +8,6 @@
 \usepackage{braket}
 \usepackage{amsthm}
 \usepackage[english]{babel}
-\usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{mathtools}
@@ -55,9 +54,12 @@ The effect of network structure may depend on the estimand of interest.
 
 In observational data, we may estimate
 \begin{equation}\label{eq:1}
-    \mathbb{E}_{i}\left[Y_{j}^{a}-Y_{j}^{a*}\right],
+    \mathbb{E}_{i}\left[Y_{i,j}^{a}-Y_{i,j}^{a*}\right],
 \end{equation}
-the expectation over individuals $i$ within the network, or the average effect on the network $j$.
+the expectation over individuals $i$ within the network $j$. If we have a particular network realization of interest, this comparison is estimating the average effect on that network $j$: 
+\begin{equation}\label{eq:1}
+    \mathbb{E}\left[Y^{a}-Y^{a*}|j\right],
+\end{equation}
 
 In simulated data, we may not be interested in any particular network, so we instead estimate
 \begin{equation}\label{eq:2}
@@ -211,8 +213,10 @@ We can now compute and compare the effect of 20\% PrEP coverage vs. 10\% PrEP co
       \hline                 
     \end{tabular}                                      \end{center}
 \section{Simulation Methods}
-Simulations were implemented in R 4.2.1. All code and figure files are available in the GitHub repository: \href{https://github.com/nico-dangelo/Network-Spillover}{Network Spillover}.
+Simulations were implemented in R 4.2.1. All code and figure files are available in the GitHub repository: \href{https://github.com/nico-dangelo/Network-Spillover}{Network Spillover}\footnote{https://github.com/nico-dangelo/Network-Spillover}.
 Erdős–Rényi random  network graphs for each scenario were generated using igraph version 1.3.2
+\subsection{Contrast Estimation}
+
 \section{Results}
 We now display simulation results for various parameter combinations.
 \begin{center}
@@ -260,9 +264,9 @@ We now display simulation results for various parameter combinations.
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics{Figu}
-    \caption{Caption}
-    \label{fig:my_label}
+    \includegraphics[scale=0.8]{Figures/Sample Size Variance plots.png}
+    \caption{Variance of Causal Contrast estimates stratified by resampling sample size. From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \label{fig:Figure 10}
 \end{figure}
 \subsection{Effect Modification by HIV Prevalence}
 \begin{figure}[H]
@@ -291,7 +295,18 @@ We now display simulation results for various parameter combinations.
     \label{fig:Figure 14}
 \end{figure}
 \subsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$}
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{Figures/p2 Mean plots.png}
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases . From top to bottom: "add" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \label{fig:Figure 15}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{Figures/p2 Variance plots.png}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases .  From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \label{fig:Figure 16}
+\end{figure}
 \section{Appendix A}
 Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$
 
