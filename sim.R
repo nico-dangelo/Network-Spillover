@@ -20,7 +20,6 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   g<-set_vertex_attr(g,name="color",index=inf_contact_g,value="orange")
   g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
   if(plots){plot(g, vertex.size=10,vertex.label.cex=1, vertex.label.dist=2,main="Control",layout=coords)}
-  inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
   hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
   #Compute P(HIV|-PrEP)
   no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
@@ -79,7 +78,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
   #Compute P(HIV|-PrEP)
   no_treat_k<-V(k)[V(k)$color%in% c("black","orange")]
-  no_treat_inf_contact_k<-V(h)[V(h)$color=="orange"]
+  no_treat_inf_contact_k<-V(k)[V(k)$color=="orange"]
   hiv_given_no_prep_k<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
   #Network Summary Statistics
   stats_g<-c(
@@ -114,14 +113,14 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
   names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
   ef<-prep+no_prep
-  names(ef)<-c("control,","ran","add","regen")
+  names(ef)<-c("control,","random","additive","regenerated")
   #compute causal contrasts
   if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))}
   # else if(scale=="multiplicative"){ef<-ef+1;
   # cc<-as.data.frame(t(ef[-1])/ef[1]); 
   #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
   # }
-  names(cc)<-c("ran","add","regen")
+  names(cc)<-c("random","additive","regenerated")
   res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
   names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
   return(res)
