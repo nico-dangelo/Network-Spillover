@@ -218,7 +218,8 @@ Erdős–Rényi random  network graphs for each scenario were generated using ig
 \subsection{Contrast Estimation}
 
 \section{Results}
-We now display simulation results for various parameter combinations.
+\subsection{Erdős–Rényi  Random Graph Models}
+We now display simulation results for various parameter combinations in the Erdős–Rényi Random Graph Model.
 \begin{center}
     \begin{tabular}{|c|c|c|}
     \hline
@@ -242,7 +243,7 @@ We now display simulation results for various parameter combinations.
          \hline
     \end{tabular}
 \end{center}
-\subsection{Effect Modification by Network Size}
+\subsubsection{Effect Modification by Network Size}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.8]{Figures/Network Size Mean Plot.png}
@@ -255,7 +256,7 @@ We now display simulation results for various parameter combinations.
     \caption{Variance of Causal Contrast estimates stratified by Network Size/Graph Order. From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 8}
 \end{figure}
-\subsection{Effect Modification by Sample Size}
+\subsubsection{Effect Modification by Sample Size}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.8]{Figures/Sample size Mean plots.png}
@@ -268,7 +269,7 @@ We now display simulation results for various parameter combinations.
     \caption{Variance of Causal Contrast estimates stratified by resampling sample size. From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 10}
 \end{figure}
-\subsection{Effect Modification by HIV Prevalence}
+\subsubsection{Effect Modification by HIV Prevalence}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.8]{Figures/HIV Prevalence Mean plots.png}
@@ -281,7 +282,7 @@ We now display simulation results for various parameter combinations.
     \caption{Variance of Causal Contrast estimates stratified by HIV Prevalence. From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 12}
 \end{figure}
-\subsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}^{c}\right]$}
+\subsubsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}^{c}\right]$}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.75]{Figures/p1 Mean plots.png}
@@ -294,7 +295,7 @@ We now display simulation results for various parameter combinations.
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}^{c}\right]$ increases .  From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 14}
 \end{figure}
-\subsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$}
+\subsubsection{Effect Modification by $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$}
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.75]{Figures/p2 Mean plots.png}
@@ -306,6 +307,48 @@ We now display simulation results for various parameter combinations.
     \includegraphics[scale=0.75]{Figures/p2 Variance plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases .  From top to bottom: "add" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, "ran" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, "regen" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 16}
+\end{figure}
+\subsection{Other Network Models}
+We also considered effect modification in two other network generating models, the Barabasi-Albert scale-free graph for preferential attachment, and the Watts-Strogatz Small-World graph. The parameter values considered for these models are summarized in the table below.
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+    \hline
+         Parameter & Default Value & Range Considered  \\
+         \hline
+         Network size $N$& 50 & Fixed \\
+         \hline
+         BA Preferential Attachment power "pow" & 1 & $\left[1,2 \right]$ \\
+         \hline
+         WS neighborhood size "nb" & 5 & $\Set{5,10,15,20}$ \\
+         \hline
+         WS rewiring probability "rprob" & 0.05 &$\left[0.05, 0.95 \right]$ \\
+         \hline
+         HIV prevalence "phiv" & 0.1 & Fixed\\
+         \hline
+         Control PrEP Coverage "PrEP1" & 0.2 & Fixed\\
+         \hline
+         Counterfactual PrEP Coverage "PrEP2" & 0.4 & Fixed\\
+         \hline
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP}^{c}\right]$ $p1$ & 0.2 & $[0.1,1]$\\
+         \hline
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP}\right]$ $p2$ & 0.1 & $[0.1,1]$\\
+         \hline
+         Re-sampling sample size "nsim" & 200 & Fixed\\
+         \hline
+    \end{tabular}
+\end{center}
+\subsubsection{Effect Modification by Network Generating Model with Default Parameters}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{Figures/Generative Model Mean plots.png}
+    \caption{Caption}
+    \label{fig:Figure 17}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{Figures/Generative Model Variance plots.png}
+    \caption{Caption}
+    \label{fig:my_label}
 \end{figure}
 \section{Appendix A}
 Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$
