@@ -605,7 +605,7 @@ ggsave(plot=N_plot_5/N_plot_4/N_plot_6+ plot_annotation(title = "Contrast Estima
 
 ```{r}
 lims_var_samp<-c(min(var_samp[,col_list]),max(var_samp[,col_list]))
-samp_plot_4<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+ylab("P(HIV|Contact and PrEP)")
+samp_plot_4<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[1]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+ylab("P(HIV|Contact and PrEP)")+xlab("P(HIV|Contact and -PrEP)")
 samp_plot_5<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[2]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
 samp_plot_6<-ggplot(var_samp,aes_string(x="p1",y="p2", fill=col_list[3]))+geom_tile()+facet_grid(~nsim)+scale_fill_gradientn(limits=lims_var_samp,colors=brewer.pal(6,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
 ggsave(plot=samp_plot_5/samp_plot_4/samp_plot_6+ plot_annotation(title = "Contrast Estimate Variance by Sample Size and Allocation" ) & 
