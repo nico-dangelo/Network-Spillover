@@ -15,7 +15,7 @@ ui <- fluidPage(
             sliderInput("N",
                         "Network size:",
                         min = 20,
-                        max = 100,
+                        max = 200,
                         value  = 20),
         
             sliderInput("phiv",

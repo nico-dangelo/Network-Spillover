@@ -36,7 +36,7 @@ options(future.rng.onMisuse="ignore")
 ## Parameters
 
 ```{r params}
-N<-50 #network population/ graph order
+N<-200 #network population/ graph order
 model="WS"
 eprob<-0.1 #edge formation probability for ER model 
 pow<-1 #preferential attachment power for BA model
@@ -313,13 +313,25 @@ save(res_PrEP,means_PrEP,var_PrEP,file="PrEP Results.RData")
 ### Change network generative model with defaults
 
 ```{r}
-params_model<-expand.grid(N=N,phiv=0.1,model=c("ER","BA","WS"),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim, stringsAsFactors = F)
+params_model<-expand.grid(N=50,phiv=0.1,model=c("ER","BA","WS"),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim, stringsAsFactors = F)
 plan("multisession",workers=availableCores()/4)
 res_model<-future_pmap_dfr(params_model,sim_par)
 means_model<-res_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,mean))
 var_model<-res_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,var))
 save(res_model,means_model,var_model,file="Generative Model Results.RData")
 ```
+
+### Change network generative model with larger network size
+
+```{r}
+params_model_large<-expand.grid(N=N,phiv=0.1,model=c("ER","BA","WS"),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),nsim=nsim, stringsAsFactors = F)
+plan("multisession",workers=availableCores()/4)
+res_model_large<-future_pmap_dfr(params_model_large,sim_par)
+means_model_large<-res_model_large%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,mean))
+var_model_large<-res_model_large%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,var))
+save(res_model_large,means_model_large,var_model_large,file=paste("N=",N,"Generative Model Results.RData"))
+```
+
 
 ### Change ER edge probability
 
@@ -533,6 +545,55 @@ model_plot_3<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[3]))+geo
   theme(plot.title = element_text(hjust = 0.5)),
 file="Generative Model Mean plots.png", path="Figures")
 
+```
+
+
+Trying cube root scale
+```{r}
+cbroot<-function(x){sign(x) * (abs(x)) ^ (1/3)}
+root_means_model<-means_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,cbroot))
+```
+
+```{r}
+lims_root_means_model<-c(min(root_means_model[,col_list]),max(root_means_model[,col_list]))
+root_model_plot_1<-ggplot(root_means_model,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_root_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+root_model_plot_2<-ggplot(root_means_model,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_root_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+root_model_plot_3<-ggplot(root_means_model,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_root_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+root_model_plot_2/root_model_plot_1/root_model_plot_3+plot_annotation(title = "Cube Root-Transformed Contrast Estimate Mean by Network Generative Model and Allocation" ) & 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Try log(1+x) transformation
+
+```{r}
+log_means_model<-means_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%mutate(across(col_list,log1p))
+```
+
+
+```{r}
+lims_log_means_model<-log1p(c(min(means_model[,col_list]),max(means_model[,col_list])))
+log_model_plot_1<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_log_means_model,colors=brewer.pal(10,name="RdYlBu"),trans="log1p")+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+log_model_plot_2<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_log_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+log_model_plot_3<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_log_means_model,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ ggsave(plot=log_model_plot_2/log_model_plot_1/log_model_plot_3+plot_annotation(title = "Log-transformed Contrast Estimate Mean by Network Generative Model and Allocation" ) & 
+  theme(plot.title = element_text(hjust = 0.5)),
+file="Generative Model Log Mean plots.png", path="Figures")
+```
+
+
+
+
+#### Generative Model with larger Network Size
+
+```{r}
+lims_means_model_large<-c(min(means_model_large[,col_list]),max(means_model_large[,col_list]))
+model_large_plot_1<-ggplot(means_model_large,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model_large,colors=brewer.pal(11,name="RdYlBu"),breaks=waiver())+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_large_plot_2<-ggplot(means_model_large,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model_large,colors=brewer.pal(11,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_large_plot_3<-ggplot(means_model_large,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_means_model_large,colors=brewer.pal(11,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ ggsave(plot=model_large_plot_2/model_large_plot_1/model_large_plot_3+plot_annotation(title = "N=200 Contrast Estimate Mean by Network Generative Model and Allocation" ) & 
+  theme(plot.title = element_text(hjust = 0.5)),
+file=" N=200 Generative Model Mean plots.png", path="Figures")
 ```
 
 
