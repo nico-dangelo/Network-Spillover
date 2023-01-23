@@ -71,7 +71,7 @@ taking the expectation under treatment over all possible network structures cons
 \subsubsection{Equivalence of Observational and Simulation Estimands}
 We are also interested in determining whether the observational estimand in \ref{eq:1} is equal to the simulation estimand in \ref{eq:3}. If our contact network of interest is drawn at random from a specified distribution, and the true effect is expected to be identical (up to stochasticity) in all such networks, then the effect in any one network should approximate the effect in all networks.
 
-In epidemiological terms: If there is no effect modification by contact network structure, $j$, then we expect that the average effect across contact networks is the same as the average effect on a given contact network, hence the equivalence of \ref{eq:1}, \ref{eq:2} and the right-hand side of \ref{eq:3}:
+In epidemiologic terms: If there is no effect modification by contact network structure, $j$, then we expect that the average effect across contact networks is the same as the average effect on a given contact network, hence the equivalence of \ref{eq:1}, \ref{eq:2} and the right-hand side of \ref{eq:3}:
 \begin{equation}\label{eq:4}
       \mathbb{E}\left[Y_{i,j}^{a}-Y_{i,j}^{a*}\vert j\right]=\mathbb{E}\left[Y^{a}-Y^{a*}\right]=\mathbb{E}_{j}\left[\mathbb{E}\left[Y_{j}^{a}-Y_{j}^{a*}\vert j\right]\right].
 \end{equation}
@@ -340,7 +340,7 @@ We now display simulation results for various parameter combinations in the ErdÅ
          \hline
          $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ & $p1$ & 0.2 & $[0.1,1]$\\
          \hline
-         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & $p2$ & 0.1 & $[0.1,1]$\\
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & 0.1 & $[0.1,1]$\\
          \hline
          Re-sampling sample size & ``nsim" & 200 & $\Set{100,1000,10000}$\\
          \hline
@@ -350,31 +350,31 @@ We now display simulation results for various parameter combinations in the ErdÅ
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Network Size Mean Plot.png}
-    \caption{Mean Causal Contrast estimates as $p_{1}$ and $p_{2}$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
     \label{fig:Figure 7}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Network Size Variance plots.png}
-    \caption{Variance of Causal Contrast estimates  as $p_{1}$ and $p_{2}$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Variance of Causal Contrast estimates  as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 8}
 \end{figure}
-From both the Mean and Variance plots above, there is apparent effect modification of the relationship between ``risks" of HIV and treatment allocation strategy at small network sizes. However, this modification essentially disappears in (order of magnitude) larger networks.   
+From both the Mean and Variance plots above, there is apparent effect modification of the relationship between ``risks" of HIV and treatment allocation strategy at small network sizes. However, this modification essentially disappears in (order of magnitude) larger networks. The effect modification is particularly apparent with respect to the regenerated networks where the means are most variable across risk combinations (as well as the variances themselves).  
 
 \subsubsection{Effect Modification by Sample Size}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Sample size Mean plots.png}
-    \caption{Mean Causal Contrast estimates stratified by resampling sample size. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by resampling sample size. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 9}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Sample Size Variance plots.png}
-    \caption{Variance of Causal Contrast estimates stratified by resampling sample size. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by resampling sample size. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 10}
 \end{figure}
-
+Much like with network size, effect modification of the relationship between underlying HIV risks and treatment strategy by resampling size is apparent in both Mean and Variance plots above. We can see clearly from these plots that Contrast estimate variances differ not only in range of magnitudes, but also follow very different gradients under different treatment strategies.
 \subsubsection{Effect Modification by HIV Prevalence}
 \begin{figure}[H]
     \centering
@@ -588,10 +588,6 @@ The Overall Effect (OE) at timestep $t$ of counterfactual PrEP allocation $a>a*$
 \begin{equation}
     OE(a)=\mathbb{E} [Y_{t}^{a}]-\mathbb{E}[Y_{t}^{a*}].
 \end{equation}
-\subsection{Composite Effect}
 
-\subsection{Direct Effect}
-\subsection{Spillover Effect}
-\section{Illustrative Example}
-\subsection{Control Scenario}
+
 \end{document}
