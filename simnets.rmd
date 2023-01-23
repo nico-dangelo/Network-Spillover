@@ -455,13 +455,13 @@ ggsave(plot=p2_plot_2/p2_plot_1/p2_plot_3+    # Create grid of plots with title
 #### PrEP1 and PrEP2- under construction
 
 ```{r PrEP grid}
-lims_means_PrEP<-c(min(means_PrEP[means_PrEP$PrEP2<1,col_list]),max(means_PrEP[means_PrEP$PrEP2<1,col_list]))
-PrEP_plot_1<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
-PrEP_plot_2<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in additive PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
-PrEP_plot_3<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in regenerated PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
-PrEP_plot_1
-PrEP_plot_2
-PrEP_plot_3
+# lims_means_PrEP<-c(min(means_PrEP[means_PrEP$PrEP2<1,col_list]),max(means_PrEP[means_PrEP$PrEP2<1,col_list]))
+# PrEP_plot_1<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+# PrEP_plot_2<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in additive PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+# PrEP_plot_3<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in regenerated PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+# PrEP_plot_1
+# PrEP_plot_2
+# PrEP_plot_3
 ```
 
 ```{r PrEP wrap}
@@ -549,6 +549,7 @@ file="Generative Model Mean plots.png", path="Figures")
 
 
 Trying cube root scale
+
 ```{r}
 cbroot<-function(x){sign(x) * (abs(x)) ^ (1/3)}
 root_means_model<-means_model%>%group_by(across(all_of(c("model","p1","p2"))))%>%summarise(across(col_list,cbroot))
@@ -581,6 +582,16 @@ log_model_plot_3<-ggplot(means_model,aes_string(x="p1",y="p2",fill=col_list[3]))
 file="Generative Model Log Mean plots.png", path="Figures")
 ```
 
+
+Separate out ER graphs to fix heatmap scale
+
+```{r}
+lims_means_model_ER<-means_model%>%filter(model=="ER")%>%select(col_list)%>%slice(c(which.min(), which.max()))
+ER_only_plot_1<-means_model%>%filter(model=="ER")%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ER_only_plot_2<-means_model%>%filter(model=="ER")%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ER_only_plot_3<-means_model%>%filter(model=="ER")%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ER_only_plot_2/ER_only_plot_1/ER_only_plot_3
+```
 
 
 
@@ -733,6 +744,19 @@ ggsave(model_plot_5/model_plot_4/model_plot_6+    # Create grid of plots with ti
   plot_annotation(title = "Contrast Estimate Variance by Network Generative Model and Allocation") & 
   theme(plot.title = element_text(hjust = 0.5)), file="Generative Model Variance plots.png",path = "Figures/")
 
+```
+
+
+#### Change network generative model with larger network size
+
+```{r}
+lims_var_model_large<-c(min(var_model_large[,col_list]),max(var_model_large[,col_list]))
+model_largeplot_4<-ggplot(var_model_large,aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model_large,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_largeplot_5<-ggplot(var_model_large,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model_large,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+model_largeplot_6<-ggplot(var_model_large,aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+scale_fill_gradientn(limits=lims_var_model_large,colors=brewer.pal(10,name="RdYlBu"))+facet_grid(~model)+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
+ggsave(model_largeplot_5/model_largeplot_4/model_largeplot_6+    # Create grid of plots with title
+  plot_annotation(title = "N=200 Contrast Estimate Variance by Network Generative Model and Allocation") & 
+  theme(plot.title = element_text(hjust = 0.5)), file="N=200 Generative Model Variance plots.png",path = "Figures/")
 ```
 
 
