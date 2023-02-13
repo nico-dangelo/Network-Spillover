@@ -13,25 +13,36 @@
 \usepackage{mathtools}
 \usepackage{algorithm2e}
 \usepackage{hyperref}
+\usepackage[title]{appendix}
+\usepackage{chngcntr}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
-\title{Causal estimands for effects in networks}
-\author{}
+\title{Causal Effects on Networks Need to Account for Effect Modification by Network Structure}
+\author{Nico D'Angelo, Sam , .... Brandon Marshall,  Ashley Buchanan,  Eleanor J Murray }
 \date{}
 
 \begin{document}
 
 \maketitle
 
-\section{Introduction: Causal Estimands under Spillover}
-\begin{definition}[Direct Effect]The direct effect is the benefit/harm to individual receiving exposure versus if they had not, within their community context. That is, the individual causal effect plus effect on the treated individual of the changing context (the exposure mix in their component has at minimum changed by this individual being treated).
+\section{Introduction}
+Transmission of infection, knowledge, behavior, or other features between individuals is a challenge in estimating causal effects of population interventions. Causal effect estimation relies on the ability to validly estimate unobserved counterfactual information for comparison. In the potential or counterfactual outcomes framework, this typically relies on the Stable Unit Treatment Value Assumption, or SUTVA, which assumes that the individuals under study are independent from and exchangeable with one another. Transmission inherently violates SUTVA, by creating a dependence between the exposure of one individual and the counterfactual outcomes of other individuals. Several paradigms have been proposed for defining causal effects in the presence of transmission, of which the Dependent Happenings paradigm of Halloran et al  \cite{halloran_study_1991} is the most widely used. However, this paradigm of effects has largely been specified in the context of group-level comparisons from observational or randomized trial data. When applied to network-based simulation models, additional concerns arise which have not been previously addressed. 
+
+Here, we begin by outlining the causal estimands available in the setting of transmission, or spillover, and then describe how these estimands should be extended when network effects are of interest. We propose two separate sets of estimands which may be of interest, one for when the empirical network is known and one for when only the network characteristics or distribution are known. We describe theoretically the importance of these estimands in obtaining valid effects, as well as consequences for simulation model design. Finally, we provide a simple simulated example which demonstrates the potential magnitude of bias that can occur when using inappropriate simulation approaches.
+
+\section{Defining Causal Estimands under Spillover}
+In the Dependent Happenings paradigm, causal effects under transmission, also called spillover, can be grouped into four major categories. Within each category, there exists a causal effect surface across the possible community exposure levels. Briefly, these four categories are:
+\begin{definition}[Direct Effect]The direct effect is the average benefit or harm experienced by each individual if they received the exposure versus if they had not, within their community context. This effect includes any changes over time to the community context, and is conditional on the community context in which it is measured. 
 %Need example%
 \end{definition}
-\begin{definition}[Spillover Effect] The spillover effect is the benefit/harm to unexposed individual in a community if some individual(s) receiving exposure versus if no individuals had received exposure.
+\begin{definition}[Spillover Effect] The spillover effect is the average benefit or harm to each unexposed individual in a community if some individuals in the community had received exposure versus if those individuals had not received exposure. This effect describes the impact of changing community context and is conditional on the particular patterns of community exposure under comparison.
 \end{definition}
-\begin{definition}[Overall effect]benefit / harm to whole community, when some individuals do vs. do not receive an exposure.
+\begin{definition}[Composite effect]The composite effect is the average benefit or harm experienced by individuals if they had received exposure versus if neither they nor anyone else in their community had received exposure.
 \end{definition}
+\begin{definition}[Overall effect] The overall effect is the average benefit or harm to whole community, if some or all individuals had received the exposure versus if fewer or no individuals had received exposure. 
+\end{definition}
+
 
 \begin{figure}[H]
     \centering
@@ -39,9 +50,11 @@
     \caption{The causal effects of interest for PrEP use in a sexual contact network.}
     \label{fig:1}
 \end{figure}
-The Direct Effect is easier to estimate in a randomized trial or observational setting when the context is fixed for the interference/spillover set. This is because when very few people are exposed, interference is minimized for the direct effect. RTs rely on this fixed context, which can be summarized as ``No one not in the trial is exposed.'' An example is in a typical vaccine trial, where the contrast of interest is that of vaccine vs. no vaccine in a context where trial participants are surrounded by vaccine naïve communities.
+Of these, the Direct Effect is generally the easiest to estimate in the context of a randomized trial. When the exposure is experimental and not available outside of the trial context, and the trial participants are not in contact with one another, then the Direct Effect also approximates the Composite Effect. The Direct Effect is also often of interest in observational studies where the prevalence of exposure is fixed in a given population over the course of the study.
 
-The Spillover and Overall Effects are more difficult to estimate in RTs and Observational studies. This is because the context is itself part of the effect definition. More precisely, these can be treated as effect estimand surfaces where the value of the estimand is conditional on a specific interference / contact pattern, rather than effect estimands. The same is true for the individual effect if interference is not minimized.
+Spillover, Composite, and Overall Effects are more difficult to estimate because the exposure context is itself part of the effect definition. More precisely, these can be treated as effect estimand surfaces where the value of the estimand is conditional on a specific exposure, interference, and contact pattern, rather than point estimands. 
+
+In community-level randomized trials, cluster randomized trials, or two-stage randomized trials, the all four effect categories can typically be estimated, assuming sufficient data are collected. In these cases, the exposure contexts are fixed to a small number of options, typically including a 'zero exposure' context. This simplifies the estimation of effect surface. Recently, attempts have been made to conceptualize network simulation models as emulations of these trials (ref Murray, Buchanan) in order to clarify the causal estimands available from these models. Here, we consider the role of simulation uncertainty in the definition and estimation of these estimands.
 
 \section{Question}
 %\section{Motivation}
@@ -340,7 +353,7 @@ We now display simulation results for various parameter combinations in the Erd�
          \hline
          $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ & $p1$ & 0.2 & $[0.1,1]$\\
          \hline
-         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & 0.1 & $[0.1,1]$\\
+         $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ & $p2$  & 0.1 & $[0.1,1]$\\
          \hline
          Re-sampling sample size & ``nsim" & 200 & $\Set{100,1000,10000}$\\
          \hline
@@ -379,15 +392,17 @@ Much like with network size, effect modification of the relationship between und
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/HIV Prevalence Mean plots.png}
-    \caption{Mean Causal Contrast estimates stratified by HIV Prevalence. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase,  stratified by HIV Prevalence. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 11}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/HIV Prevalence Variance plots.png}
-    \caption{Variance of Causal Contrast estimates stratified by HIV Prevalence. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase,  stratified by HIV Prevalence. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 12}
 \end{figure}
+
+While it may be more obvious from the Variance plots in Figure \ref{fig:Figure 12} than in the Mean plots \ref{fig:Figure 11}, there is apparent effect modification of the relationship between underlying HIV risks and treatment strategy by the initial HIV prevalence. We can see three distinct gradients in the magnitude of the contrast estimate variance over the HIV risks for each of the treatment strategies, with distinct changes in these gradients by HIV prevalence. 
 \subsubsection{Effect Modification by \texorpdfstring{$\mathbb{P}[\text{HIV } | \text {Contact } \cap \neg \text{ PrEP}]$}{ℙ[HIV | ¬PrEP]}}
 \begin{figure}[H]
     \centering
@@ -401,7 +416,7 @@ Much like with network size, effect modification of the relationship between und
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$ increases .  From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 14}
 \end{figure}
-
+From the contrast estimate mean and variance plots in figures \ref{fig:Figure 13} and \ref{fig:Figure 14} above, we observe effect modification of the relationship between the underlying risk of HIV given contact and no treatment and HIV risk by treatment strategy. Whilst in the ``additive" treatment strategy, the contrast estimate mean and variance are both very small and relatively constant except for relatively large values of $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$. The ``random" and ``regenerated" treatment strategies show marked heteroskedasticity beginning with much smaller values of $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$, with the "regenerated" strategy usually having larger variability than the ``random" strategy for the same value of $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$.  
 \subsubsection{Effect Modification by \texorpdfstring{$\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \text{ PrEP}\right]$}{ℙ[HIV | PrEP]}}
 \begin{figure}[H]
     \centering
@@ -417,44 +432,47 @@ Much like with network size, effect modification of the relationship between und
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases .  From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 16}
 \end{figure}
+Much like with the underlying risk of HIV given no treatment, we observe effect modification of the relationship between the underlying risk of HIV given infectious contact and PrEP treatment by allocation strategy. This modification is apparent in both Causal Contrast estimate Mean and Variance plots in Figure \ref{fig:Figure 15} and \ref{fig:Figure 16}, respectively. While the modification is qualitatively similar to that for the no treatment risk, it is interesting to note that the range of both mean and variance magnitudes is larger for $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ than for $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$.
+
 \subsubsection{Effect Modification by PrEP contrasts in ER model}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Additive Mean Plots.png}
-    \caption{Mean Causal Contrast estimates of random PrEP1\% additional vs. random PrEP2-PrEP1 \% PrEP allocation control. Top number indicates PrEP1 \% control coverage. Bottom number is PrEP2 counterfactual coverage. }
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP1\% additional vs. random PrEP2-PrEP1 \% PrEP allocation control. Top number indicates PrEP1 \% control coverage. Bottom number is PrEP2 counterfactual coverage. }
     \label{fig:Figure 17}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Additive Variance Plots.png}
-    \caption{Variance of Causal Contrast estimates of random PrEP2-PrEP1\% additional vs. random PrEP1 \% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2-PrEP1\% additional vs. random PrEP1 \% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure 18}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Random Mean Plots.png}
-    \caption{Mean Causal Contrast estimates of random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
+    \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure 19}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Random Variance Plots.png}
-    \caption{Variance of Causal Contrast estimates of random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure 20}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Regenerated Mean Plots.png}
-    \caption{Mean of Causal Contrast estimates of random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
+    \caption{Mean of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by  random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure 21}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/PrEP Regenerated Variance Plots.png}
-    \caption{Variance of Causal Contrast estimates of random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage. }
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage. }
     \label{fig:Figure 22}
 \end{figure}
 
+We can observe from the causal contrast mean and variance plots in Figures \ref{fig:Figure 17}-\ref{fig:Figure 22} that there is effect modification of the relationship between underlying HIV risks and treatment strategy by the choices of PrEP treatment contrasts. This modification is easier to identify in the variance plots, as once again the variances for the regenerated allocation strategy contrasts display a completely different gradient across underlying risks from the additive and random strategy for all pairs of PrEP coverages. While the gradients are more similar between the random and additive strategies, there are still clear differences in contrast variance magnitude for given choices of PrEP coverage and HIV risks. With respect to the contrast estimate mean, effect modification is more subtle between the random and additive strategies and more apparent when comparing these two to the regenerated strategy contrasts. 
 \subsection{Other Network Models}
 We also considered effect modification in two other network generating models, the Barabási–Albert scale-free graph for preferential attachment, and the Watts-Strogatz Small-World graph. The parameter values considered for these models are summarized in the table below.
 \begin{center}
@@ -488,17 +506,29 @@ We also considered effect modification in two other network generating models, t
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Generative Model Mean plots.png}
-    \caption{Mean of Causal Contrast estimates stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
+    \caption{Mean of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
     \label{fig:Figure 23}
 \end{figure}
+From the causal contrast mean plots in Figure \ref{fig:Figure 23} above, we can see stark effect modification of the relationship between underlying HIV risks and treatment strategy by the choice of network generative model. In particular, the ER model displays a completely different gradient than those of the BA or WS models for all treatment strategies. There is also a ``reversal" in the direction of effects for the BA model with random allocation compared to additive and regenerated strategies, as well as relatively large differences in magnitude of effect estimates. WS model effect estimate magnitudes are also different across treatment strategies. 
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Figures/Generative Model Variance plots.png}
-    \caption{Variance of Causal Contrast estimates stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
+    \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure 24}
 \end{figure}
+The causal contrast variance plots in Figure \ref{fig:Figure 24} above also clearly show effect modification  of the relationship between underlying HIV risks and treatment strategy by the choice of network generative model.  Interestingly, the variance gradients appear similar across models in the ``additive" allocation strategy. While the magnitudes of variance estimates vary slightly, the gradient for the Watts-Strogatz model is much more consistent  across allocation strategies than for the Barabási–Albert or  Erdős–Rényi models. In particular, the gradients within these two models are markedly different by allocation strategy, although the pattern of changes is similar between these models across strategies.  
+
 \section{Discussion}
-\section{Appendix A: Definition for \textit{P}}
+
+For all model parameters considered, there is clear effect modification of the relationship between risks of HIV given infectious contact with and without PrEP treatment. This modification is apparent for all parameters in both means and variances of causal contrast estimates.
+
+Of particular interest is the stark effect modification by the choice of network generative model. Network summary statistics (see \ref{fig:Figure B1}) confirm that the intended network properties are displayed in samples.  
+
+
+\appendix
+\counterwithin{figure}{section}
+\section{Definition for \textit{P}}
 Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$
 
 Assume as before that $N$ is the network population at a given time point, that $k<N$ is the number of individuals that receive treatment, and that $n<N$ is the number of individuals with an infectious contact.
@@ -548,13 +578,13 @@ simplifying as appropriate gives
     &=1-\frac{\left(N-k\right)^{n}}{N^{n}}\\
     &=1-\left(\frac{N-k}{N}\right)^{n}.
 \end{align}
-\section{Appendix B: Summary Statistics}
+\section{Summary Statistics}
 \subsection{Definitions}
 \begin{definition}[Connected Components]
-A connected component of a graph $G=(V,E)$ is a subgraph $G'=(V' \subseteq V,E' \subseteq E)\subseteq G$ such that there exists a path between any 2 nodes in $V'$.
+A connected component of a graph $G=(V,E)$ is a subgraph $G'=(V' \subseteq V,E' \subseteq E)\subseteq G$ such that there exists a path between any two nodes in $V'$.
 \end{definition}
 \begin{definition}[Betweenness Centrality]
-The Betweenness Centrality for a node $v$ is given by: $$g(v)=\sum_{s\neq t\neq v}\frac{\sigma_{s,t}(v)}{\sigma_{s,t}},$$ where $\sigma(s,t)$ is  the number of shortest paths between node s and node t, and  $\sigma_{s,t}(v)$ is the number of shortest paths between node $s$ and node $t$ containing the node $v$.
+The Betweenness Centrality for a node $v$ is given by: $$g(v)=\sum_{s\neq t\neq v}\frac{\sigma_{s,t}(v)}{\sigma_{s,t}},$$ where $\sigma(s,t)$ is  the number of shortest paths between node s and node t, and  $\sigma_{s,t}(v)$ is the number of shortest paths between node $s$ and node $t$ containing the node $v$ \cite{barabasi_network_2016}.
 \end{definition}
 \begin{definition}[Edge Density]
 The (edge) density of a graph is the proportion of possible edges between nodes
@@ -580,14 +610,16 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
     \caption{Select Network Summary Statistics by Network Generative Model}
     \label{fig:Figure B1}
 \end{figure}
-\section{Appendix C: Expanded Effect Definitions}
+% \section{Expanded Effect Definitions}
 
-\subsection{Overall Effect}
+% \subsection{Overall Effect}
 %As before,  let $Y$ be the outcome of interest, $a$, $a∗$ be counterfactuals of treatment strategy $A$, and $j$ be an identifier of a network.
-The Overall Effect (OE) at timestep $t$ of counterfactual PrEP allocation $a>a*$ is the difference of the marginal population average potential outcomes under $a$ and $a*$:
-\begin{equation}
-    OE(a)=\mathbb{E} [Y_{t}^{a}]-\mathbb{E}[Y_{t}^{a*}].
-\end{equation}
+% The Overall Effect (OE) at timestep $t$ of counterfactual PrEP allocation $a>a*$ is the difference of the marginal population average potential outcomes under $a$ and $a*$:
+% \begin{equation}
+%     OE(a)=\mathbb{E} [Y_{t}^{a}]-\mathbb{E}[Y_{t}^{a*}].
+% \end{equation}
+\section{Example Annotated Networks for all Generative Models}
 
-
+\bibliographystyle{unsrt}
+\bibliography{references}
 \end{document}
