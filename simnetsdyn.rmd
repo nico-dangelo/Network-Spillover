@@ -6,20 +6,20 @@ output: html_notebook
 
 ```{r libraries}
 #libraries
-# require(sna)
-# require(tsna)
+
 require(igraph)
 # require(network)
 # require(networkDynamic)
 # require(intergraph)
 require(EpiModel)
 # require(NetSim)
+require(animate)
 ```
 
 
 ```{r params}
 params<-list(N=100, #network population/ graph order
-model="ER",
+model="WS",
 eprob=0.1, #edge formation probability for ER model 
 pow=1, #preferential attachment power for BA model
 nb=20, # neighborhood parameter for small-world model
@@ -30,12 +30,13 @@ PrEP2=0.4, # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation 
 p1=0.2, #P(HIV|Contact and -PrEP)
 p2=0.1, #P(HIV|Contact and PrEP)
-tsteps=100)
+tsteps=10,
+ReWire=T)
 list2env(params,globalenv())
 ```
 
 
-```{r}
+```{r eval=F}
 sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, rewire=F){
   args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob,rewire)
   names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","rewire")
@@ -226,7 +227,7 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
 
 
 ```{r}
-sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, rewire=F){
+sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F){
   args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob,rewire)
   names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","rewire")
   #parameter check
@@ -335,7 +336,9 @@ sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER",
   #compute causal contrasts
 cc<-as.data.frame(t(ef[-1]-ef[1]))
   names(cc)<-c("random","additive","regenerated")
-  #spread epidemic on static network
+  #spread epidemic 
+  # Do not add new treatment over time
+# Follow-up initially treated only
   g_list<-vector("list",length=tsteps)
   g_list[[1]]<-g
   h_list<-vector("list",length=tsteps)
@@ -345,22 +348,22 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   k_list<-vector("list",length=tsteps)
   k_list[[1]]<-k
   for(i in 2:tsteps){
-    # plot(g, main=paste("initial time=", i), layout=layout.circle(g))
+    plot(g, main=paste("initial time=", i), layout=layout.circle(g))
     l_new_infs_treat_g<-ceiling(length(treat_inf_contact_g)*p2)
     l_new_infs_no_treat_g<-ceiling(length(no_treat_inf_contact_g)*p1)
    new_infs_treat_g<-sample(treat_inf_contact_g,size=l_new_infs_treat_g)
    new_infs_no_treat_g<-sample(no_treat_inf_contact_g,size=l_new_infs_no_treat_g )
   g<-set_vertex_attr(g,name = "color",index = new_infs_no_treat_g,value="red")
   g<-set_vertex_attr(g,name = "color",index = new_infs_treat_g,value="red")
-  # plot(g, main=paste("new cases labelled, time=",i), layout=layout.circle(g))
+  plot(g, main=paste("new cases labelled, time=",i), layout=layout.circle(g))
   inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
   treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color %in%c("blue","purple"))]
   no_treat_inf_contact_g<-setdiff(inf_contact_g,treat_inf_contact_g)
   g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
-  # plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
+  plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
   g<-set_vertex_attr(g,name="color",index=no_treat_inf_contact_g,value="orange")
-  # plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
-  g_list[[i]]<-g 
+  plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
+  g_list[[i]]<-g
 
   l_new_infs_treat_h<-ceiling(length(treat_inf_contact_h)*p2)
   l_new_infs_no_treat_h<-ceiling(length(no_treat_inf_contact_h)*p1)
@@ -400,16 +403,16 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
   k<-set_vertex_attr(k,name="color",index=no_treat_inf_contact_k,value="orange") 
   k_list[[i]]<-k
-  }
+#    # if(ReWire==TRUE){
+#   #rewire graphs keeping degree distribution
+# g<-rewire(g,keeping_degseq(loops=F,niter = 1))
+# k<-rewire(k,keeping_degseq(loops=F,niter=1))
+# }
+ }
   
   out<-list("g_list"=g_list,"h_list"=h_list,"j_list"=j_list,"k_list"=k_list)
   
-  if(rewire){
-  
-  #rewire graphs keeping degree distribution
-# g_rw<-rewire(g,keeping_degseq(loops=F,niter = 1))
-# k_rw<-rewire(k,keeping_degseq(loops=F,niter=1))
-}
+ 
   return(out)}
 ```
 
@@ -422,6 +425,19 @@ list2env(out,globalenv())
 ```
 
 ```{r}
-for(i in 1:100) plot(j_list[[i]])
+for(i in 1:tsteps) plot(g_list[[i]], layout=layout.circle(g_list[[i]]))
+g_adj<-vector(mode="list",length=tsteps)
+for(i in 1:tsteps){
+  g_adj[[i]]<-as_adj(g_list[[i]])
+  }
+length(unique(g_adj))
+for(i in 2:tsteps)print(g_adj[[i]]-g_adj[[i-1]])
+```
+```{r}
+#compare rewiring algorithms
+g<-make_ring(10)
+plot(g, layout=layout_nicely(g))
+g%>%rewire(keeping_degseq(niter=1))%>%plot(layout=layout_nicely(g))
+g%>%rewire(each_edge(0.10))%>%plot(layout=layout_nicely(g))
 ```
 
