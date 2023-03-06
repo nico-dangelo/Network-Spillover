@@ -1,12 +1,10 @@
 library(igraph)
-sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
-  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob)
-  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","scale","model","eprob","pow","nb","rprob")
+sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
+  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,model,eprob,pow,nb,rprob)
+  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob")
   #parameter check
-  scale<-match.arg(scale)
   model<-match.arg(model)
-  # plot a random graph, 3 color options
-  #control scenario graph, 10% assignment prob
+  #control scenario graph, PrEP1% assignment prob
   g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_g<-round((gorder(g)*phiv),0)
   l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
@@ -25,7 +23,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
   no_treat_inf_contact_g<-V(g)[V(g)$color=="orange"]
   hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
-  #Randomly assign 20% overall (shuffle attributes)
+  #Randomly assign PrEP2% overall (shuffle attributes)
   l_hiv_h<-round((gorder(g)*phiv),0)
   l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
   l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
@@ -43,7 +41,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   no_treat_h<-V(h)[V(h)$color%in% c("black","orange")]
   no_treat_inf_contact_h<-V(h)[V(h)$color=="orange"]
   hiv_given_no_prep_h<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h)*p1)/length(no_treat_h),0)
-  #duplicate network structure, additional 10% treated
+  #duplicate network structure, additional PrEP2-PrEP1% treated
   l_hiv_j<-round((gorder(g)*phiv),0)
   l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
   l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
@@ -61,7 +59,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
   no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
   hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
-  # plot a random graph, 3 color options
+  # Regenerated graph
   k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_k<-round((gorder(k)*phiv),0)
   l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
@@ -115,11 +113,6 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c
   ef<-prep+no_prep
   names(ef)<-c("control,","random","additive","regenerated")
   #compute causal contrasts
-  if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))}
-  # else if(scale=="multiplicative"){ef<-ef+1;
-  # cc<-as.data.frame(t(ef[-1])/ef[1]); 
-  #if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
-  # }
   names(cc)<-c("random","additive","regenerated")
   res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
   names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))

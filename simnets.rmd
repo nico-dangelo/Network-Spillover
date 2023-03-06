@@ -56,13 +56,11 @@ scale="additive"
 ## Simulation Function
 
 ```{r simulation}
-sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F, scale=c("additive","multiplicative"),model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
-  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob)
-  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","scale","model","eprob","pow","nb","rprob")
+sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
+  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,model,eprob,pow,nb,rprob)
+  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob")
    #parameter check
-scale<-match.arg(scale)
 model<-match.arg(model)
-# plot a random graph, 3 color options
 #control scenario graph, PrEP1% assignment prob
 g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
 l_hiv_g<-round((gorder(g)*phiv),0)
@@ -82,7 +80,7 @@ hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/len
 no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
 no_treat_inf_contact_g<-V(g)[V(g)$color=="orange"]
 hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
-#Randomly assign 20% overall (shuffle attributes)
+#Randomly assign PrEP2% overall (shuffle attributes)
 l_hiv_h<-round((gorder(g)*phiv),0)
 l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
 l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
@@ -118,7 +116,7 @@ hiv_given_prep_j<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/len
 no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
 no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
 hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
-# plot a random graph, 3 color options
+# Regenerated graph
 k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
 l_hiv_k<-round((gorder(k)*phiv),0)
 l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
@@ -172,11 +170,6 @@ names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep
 ef<-prep+no_prep
 names(ef)<-c("control,","random","additive","regenerated")
 #compute causal contrasts
-if(scale=="additive"){cc<-as.data.frame(t(ef[-1]-ef[1]))}
-# else if(scale=="multiplicative"){ef<-ef+1;
-# cc<-as.data.frame(t(ef[-1])/ef[1]); 
-#if(is.na(t(ef[-1]/ef[1]))||is.infinite(t(ef[-1]/ef[1]))){print(ef)}
-# }
 names(cc)<-c("random","additive","regenerated")
 res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
 names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
@@ -377,6 +370,17 @@ save(res_rprob,means_rprob,var_rprob,file="Small World Rewiring Probability Resu
 ```
 
 
+### Check BA Model
+
+```{r}
+params_ba<-expand.grid(N=N,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",pow=pow, scale="additive", nsim=nsim,stringsAsFactors = F)
+res_ba<-future_pmap_dfr(params_ba,sim_par)
+means_ba<-res_ba%>%group_by(across(all_of(c("p1","p2"))))%>%summarise(across(col_list,mean))
+var_ba<-res_ba%>%group_by(across(all_of(c("p1","p2"))))%>%summarise(across(col_list,var))
+save(res_ba,)
+```
+
+
 
 ## Figures
 
@@ -455,7 +459,7 @@ ggsave(plot=p2_plot_2/p2_plot_1/p2_plot_3+    # Create grid of plots with title
 #### PrEP1 and PrEP2- under construction
 
 ```{r PrEP grid}
-# lims_means_PrEP<-c(min(means_PrEP[means_PrEP$PrEP2<1,col_list]),max(means_PrEP[means_PrEP$PrEP2<1,col_list]))
+lims_means_PrEP<-c(min(means_PrEP[means_PrEP$PrEP2<1,col_list]),max(means_PrEP[means_PrEP$PrEP2<1,col_list]))
 # PrEP_plot_1<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in random PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
 # PrEP_plot_2<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in additive PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
 # PrEP_plot_3<-means_PrEP%>%filter(PrEP2<1)%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[3]))+geom_tile()+facet_grid(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Mean contrast estimate in regenerated PrEP allocation by PrEP coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
@@ -527,11 +531,21 @@ PrEP_plot_3 &
 # 
 # ```{r}
 # lapply(PrEP2s,my_plot_regen)
-# ```
+# ```http://127.0.0.1:17777/graphics/plot_zoom_png?width=1920&height=1017
 # 
 # ```{r}
 # grid.arrange(plotlist_add[1],plotlist_ran[1],plotlist_regen[1])
 ```
+
+
+Try only visualizing some contrast pairs?
+
+```{r PrEP subset}
+means_PrEP%>%filter(PrEP1%in%seq(0.1,0.8,0.1),PrEP2%in%seq(0.3,0.9,0.2))%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[1]))+geom_tile()+facet_wrap(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast Estimate Mean in random PrEP Allocation by PrEP Coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+means_PrEP%>%filter(PrEP1%in%seq(0.1,0.8,0.1),PrEP2%in%seq(0.3,0.9,0.2))%>%ggplot(aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+facet_wrap(PrEP1~PrEP2,scales="free")+scale_fill_gradientn(limits=lims_means_PrEP, colors=brewer.pal(5,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")+ggtitle("Contrast Estimate Mean in additive PrEP Allocation by PrEP Coverage")+scale_x_discrete(guide = guide_axis(n.dodge=2))
+
+```
+
 
 
 #### Generative model
