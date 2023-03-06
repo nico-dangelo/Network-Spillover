@@ -5,7 +5,7 @@ require(patchwork)
 require(tidyverse)
 require(RColorBrewer)
 require(purrr)
-set.seed(500)
+set.seed(1000)
 source("sim.R")
 N<-50 #network population/ graph order
 eprob<-0.1 #edge formation probability for ER model 
@@ -15,7 +15,7 @@ PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation p
 p1<-0.2 #P(HIV|Contact and -PrEP)
 p2<-0.1 #P(HIV|Contact and PrEP)
-nsim<-100
+nsim<-200
 plots=F
 system.time({res<-nsim%>%rerun(sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2))})
 res_samp<-do.call("rbind",res)

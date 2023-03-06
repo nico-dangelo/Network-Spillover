@@ -113,6 +113,7 @@ sim<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F,model=c(
   ef<-prep+no_prep
   names(ef)<-c("control,","random","additive","regenerated")
   #compute causal contrasts
+  cc<-as.data.frame(t(ef[-1]-ef[1]))
   names(cc)<-c("random","additive","regenerated")
   res<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
   names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
