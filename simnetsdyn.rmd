@@ -19,7 +19,7 @@ require(animate)
 
 ```{r params}
 params<-list(N=100, #network population/ graph order
-model="WS",
+model="ER",
 eprob=0.1, #edge formation probability for ER model 
 pow=1, #preferential attachment power for BA model
 nb=20, # neighborhood parameter for small-world model
@@ -36,203 +36,13 @@ list2env(params,globalenv())
 ```
 
 
-```{r eval=F}
-sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, rewire=F){
-  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob,rewire)
-  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","rewire")
-  #parameter check
-  model<-match.arg(model)
-  # plot a random graph, 3 color options
-  #control scenario graph, 10% assignment prob
-  g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
-  l_hiv_g<-round((gorder(g)*phiv),0)
-  l_PrEP1_g<-round(((gorder(g)-l_hiv_g)*PrEP1),0)
-  l_sus_g<-round((gorder(g)-(l_hiv_g+l_PrEP1_g)),0)
-  vertex_attr(g) <- list(color=c(rep("red", l_hiv_g), rep("blue",l_PrEP1_g), rep("black",l_sus_g)))
-  inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
-  #compute P(HIV|PrEP)
-  treat_g<-V(g)[V(g)$color=="blue"]
-  treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color=="blue")]
-  g<-set_vertex_attr(g,name="color",index=inf_contact_g,value="orange")
-  g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
-  hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
-  #Compute P(HIV|-PrEP)
-  no_treat_g<-V(g)[V(g)$color %in% c("black","orange")]
-  no_treat_inf_contact_g<-V(g)[V(g)$color=="orange"]
-  hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
-  #Randomly assign 20% overall (shuffle attributes)
-  l_hiv_h<-round((gorder(g)*phiv),0)
-  l_PrEP2_h<-round(((gorder(g)-l_hiv_h)*PrEP2),0)
-  l_sus_h<-round((gorder(g)-(l_hiv_h+l_PrEP2_h)),0)
-  h<-set_vertex_attr(g,"color",value=c(rep("red",l_hiv_h), sample(c(rep("blue",l_PrEP2_h), rep("black", l_sus_h)))))
-  inf_contact_h<-setdiff(unlist(adjacent_vertices(h,v=V(h)[color=="red"])), V(h)[color=="red"])
-  #Compute P(HIV|PrEP)
-  treat_h<-V(h)[V(h)$color=="blue"]
-  treat_inf_contact_h<-V(h)[inf_contact_h][which(V(h)[inf_contact_h]$color=="blue")]
-  h<-set_vertex_attr(h,name="color",index=inf_contact_h,value="orange")
-  h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
-  hiv_given_prep_h<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
-  #Compute P(HIV|-PrEP)
-  no_treat_h<-V(h)[V(h)$color%in% c("black","orange")]
-  no_treat_inf_contact_h<-V(h)[V(h)$color=="orange"]
-  hiv_given_no_prep_h<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h)*p1)/length(no_treat_h),0)
-  #duplicate network structure, additional 10% treated
-  l_hiv_j<-round((gorder(g)*phiv),0)
-  l_PrEP2_j<-round(((gorder(g)-l_hiv_j)*PrEP2),0)
-  l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
-  j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
-  inf_contact_j<-setdiff(unlist(adjacent_vertices(j,v=V(j)[color=="red"])), V(j)[color=="red"])
-  #compute (HIV|PrEP)
-  treat_j<-V(j)[V(j)$color=="blue"]
-  treat_inf_contact_j<-V(j)[inf_contact_j][which(V(j)[inf_contact_j]$color=="blue")]
-  j<-set_vertex_attr(j,name="color",index=inf_contact_j,value="orange")
-  j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
-  hiv_given_prep_j<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
-  #Compute P(HIV|-PrEP)
-  no_treat_j<-V(j)[V(j)$color%in% c("black","orange")]
-  no_treat_inf_contact_j<-V(j)[V(j)$color=="orange"]
-  hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
-  # plot a random graph, 3 color options
-  k <- if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
-  l_hiv_k<-round((gorder(k)*phiv),0)
-  l_PrEP2_k<-round(((gorder(k)-l_hiv_k)*PrEP2),0)
-  l_sus_k<-round((gorder(k)-(l_hiv_k+l_PrEP2_k)),0)
-  vertex_attr(k) <- list(color =c(rep("red", l_hiv_k), rep("blue",l_PrEP2_k), rep("black", l_sus_k)))
-  inf_contact_k<-setdiff(unlist(adjacent_vertices(k,v=V(k)[color=="red"])), V(k)[color=="red"])
-  #Compute P(HIV|PrEP)
-  treat_k<-V(k)[V(k)$color=="blue"]
-  treat_inf_contact_k<-V(k)[inf_contact_k][which(V(k)[inf_contact_k]$color=="blue")]
-  k<-set_vertex_attr(k,name="color",index=inf_contact_k,value="orange")
-  k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
-  hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
-  #Compute P(HIV|-PrEP)
-  no_treat_k<-V(k)[V(k)$color%in% c("black","orange")]
-  no_treat_inf_contact_k<-V(k)[V(k)$color=="orange"]
-  hiv_given_no_prep_k<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
-  #Network Summary Statistics
-  stats_g<-c(
-    Co_g<-count_components(g), #Number of Components
-    Cs_g<-max(components(g)$csize),#Largest Component Size
-    B_g<-mean(igraph::betweenness(g)),# Average Betweenness Centrality
-    De_g<-edge_density(g),#Density
-    Ce_g<-centr_degree(g)$centralization,#Degree Centralization
-    G_g<-mean_distance(g),#Average geodesic distance
-    Di_g<-diameter(g),#Network Diameter
-    T_g<-transitivity(g),#Transitivity/Clustering
-    K_g<-sum(coreness(g)==2)/length(coreness(g)),#Proportion of nodes in 2-cores
-    As_g<-assortativity_degree(g,directed=F) #Degree Assortativity
-  )
-  names(stats_g)<-c("Number of Components g","Largest Component Size g", "Avg. Betweenness g","Density g","Degree Centralization g","Avg. Geodesic Distance g", "Diameter g", "Transitivity g","Proportion of nodes in 2-cores g", "Degree Assortativity g")
-  stats_k<-c(
-    Co_k<-count_components(k), #Number of Components
-    Cs_k<-max(components(k)$csize),#Largest Component Size
-    B_k<-mean(igraph::betweenness(k)),# Average Betweenness Centrality
-    De_k<-edge_density(k),#Density
-    Ce_k<-centr_degree(k)$centralization,#Degree Centralization
-    G_k<-mean_distance(k),#Average geodesic distance
-    Di_k<-diameter(k),#Network Diameter
-    T_k<-transitivity(k),#Transitivity/Clustering
-    K_k<-sum(coreness(k)==2)/length(coreness(k)),#Proportion of nodes in 2-cores,
-    As_k<-assortativity_degree(k,directed=F) #Degree Assortativity
-  )
-  names(stats_k)<-c("Number of Components k","Largest Component Size k", "Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k", "Diameter k", "Transitivity k","Proportion of nodes in 2-cores k", "Degree Assortativity k")
-  # Combine effect estimates
-  prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
-  names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
-  no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
-  names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
-  ef<-prep+no_prep
-  names(ef)<-c("control,","random","additive","regenerated")
-  #compute causal contrasts
-cc<-as.data.frame(t(ef[-1]-ef[1]))
-  names(cc)<-c("random","additive","regenerated")
-  #spread epidemic on static network
-  g_list<-vector("list",length=tsteps)
-  g_list[[1]]<-intergraph::asNetwork(g)
-  h_list<-vector("list",length=tsteps)
-  h_list[[1]]<-intergraph::asNetwork(h)
-  j_list<-vector("list",length = tsteps)
-  j_list[[1]]<-intergraph::asNetwork(j)
-  k_list<-vector("list",length=tsteps)
-  k_list[[1]]<-intergraph::asNetwork(k)
-  for(i in 2:tsteps){
-    # plot(g, main=paste("initial time=", i), layout=layout.circle(g))
-    l_new_infs_treat_g<-ceiling(length(treat_inf_contact_g)*p2)
-    l_new_infs_no_treat_g<-ceiling(length(no_treat_inf_contact_g)*p1)
-   new_infs_treat_g<-sample(treat_inf_contact_g,size=l_new_infs_treat_g)
-   new_infs_no_treat_g<-sample(no_treat_inf_contact_g,size=l_new_infs_no_treat_g )
-  g<-set_vertex_attr(g,name = "color",index = new_infs_no_treat_g,value="red")
-  g<-set_vertex_attr(g,name = "color",index = new_infs_treat_g,value="red")
-  # plot(g, main=paste("new cases labelled, time=",i), layout=layout.circle(g))
-  inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
-  treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color %in%c("blue","purple"))]
-  no_treat_inf_contact_g<-setdiff(inf_contact_g,treat_inf_contact_g)
-  g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
-  # plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
-  g<-set_vertex_attr(g,name="color",index=no_treat_inf_contact_g,value="orange")
-  # plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
-  g_list[[i]]<-intergraph::asNetwork(g) 
-
-  l_new_infs_treat_h<-ceiling(length(treat_inf_contact_h)*p2)
-  l_new_infs_no_treat_h<-ceiling(length(no_treat_inf_contact_h)*p1)
-  new_infs_treat_h<-sample(treat_inf_contact_h,size=l_new_infs_treat_h)
-  new_infs_no_treat_h<-sample(no_treat_inf_contact_h,size=l_new_infs_no_treat_h)
-  h<-set_vertex_attr(h,name = "color",index = new_infs_no_treat_h,value="red")
-  h<-set_vertex_attr(h,name = "color",index = new_infs_treat_h,value="red")
-  inf_contact_h<-setdiff(unlist(adjacent_vertices(h,v=V(h)[color=="red"])), V(h)[color=="red"])
-  treat_inf_contact_h<- V(h)[inf_contact_h][which(V(h)[inf_contact_h]$color %in%c("blue","purple"))]
-  no_treat_inf_contact_h<-setdiff(inf_contact_h,treat_inf_contact_h)
-  h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
-  h<-set_vertex_attr(h,name="color",index=no_treat_inf_contact_h,value="orange") 
-  h_list[[i]]<-intergraph::asNetwork(h)
-  
-  l_new_infs_treat_j<-ceiling(length(treat_inf_contact_j)*p2)
-  l_new_infs_no_treat_j<-ceiling(length(no_treat_inf_contact_j)*p1)
-  new_infs_treat_j<-sample(treat_inf_contact_j,size=l_new_infs_treat_j)
-  new_infs_no_treat_j<-sample(no_treat_inf_contact_j,size=l_new_infs_no_treat_j)
-  j<-set_vertex_attr(j,name = "color",index = new_infs_no_treat_j,value="red")
-  j<-set_vertex_attr(j,name = "color",index = new_infs_treat_j,value="red")
-  inf_contact_j<-setdiff(unlist(adjacent_vertices(j,v=V(j)[color=="red"])), V(j)[color=="red"])
-  treat_inf_contact_j<- V(j)[inf_contact_j][which(V(j)[inf_contact_j]$color %in%c("blue","purple"))]
-  no_treat_inf_contact_j<-setdiff(inf_contact_j,treat_inf_contact_j)
-  j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
-  j<-set_vertex_attr(j,name="color",index=no_treat_inf_contact_j,value="orange") 
-  j_list[[i]]<-intergraph::asNetwork(j)
-
-  l_new_infs_treat_k<-ceiling(length(treat_inf_contact_k)*p2)
-  l_new_infs_no_treat_k<-ceiling(length(no_treat_inf_contact_k)*p1)
-  new_infs_treat_k<-sample(treat_inf_contact_k,size=l_new_infs_treat_k)
-  new_infs_no_treat_k<-sample(no_treat_inf_contact_k,size=l_new_infs_no_treat_k)
-  k<-set_vertex_attr(k,name = "color",index =new_infs_no_treat_k,value="red")
-  k<-set_vertex_attr(k,name = "color",index = new_infs_treat_k,value="red")
-  inf_contact_k<-setdiff(unlist(adjacent_vertices(k,v=V(k)[color=="red"])), V(k)[color=="red"])
-  treat_inf_contact_k<- V(k)[inf_contact_k][which(V(k)[inf_contact_k]$color %in%c("blue","purple"))]
-  no_treat_inf_contact_k<-setdiff(inf_contact_k,treat_inf_contact_k)
-  k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
-  k<-set_vertex_attr(k,name="color",index=no_treat_inf_contact_k,value="orange") 
-  k_list[[i]]<-intergraph::asNetwork(k)
-  }
-  
-  out<-list("g_list"=g_list,"h_list"=h_list,"j_list"=j_list,"k_list"=k_list)
-  
-  if(rewire){
-  
-  #rewire graphs keeping degree distribution
-# g_rw<-rewire(g,keeping_degseq(loops=F,niter = 1))
-# k_rw<-rewire(k,keeping_degseq(loops=F,niter=1))
-}
-  return(out)}
-
-```
-
-
 ```{r}
 sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F){
   args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob,rewire)
   names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","rewire")
   #parameter check
   model<-match.arg(model)
-  # plot a random graph, 3 color options
+   # Initial models
   #control scenario graph, 10% assignment prob
   g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
   l_hiv_g<-round((gorder(g)*phiv),0)
@@ -272,7 +82,7 @@ sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER",
   l_sus_j<-round((gorder(g)-(l_hiv_j+l_PrEP2_j)),0)
   j<-set_vertex_attr(g,"color",value=c(rep("red", l_hiv_j), rep("blue",l_PrEP2_j), rep("black", l_sus_j)))
   inf_contact_j<-setdiff(unlist(adjacent_vertices(j,v=V(j)[color=="red"])), V(j)[color=="red"])
-  #compute (HIV|PrEP)
+  #compute P(HIV|PrEP)
   treat_j<-V(j)[V(j)$color=="blue"]
   treat_inf_contact_j<-V(j)[inf_contact_j][which(V(j)[inf_contact_j]$color=="blue")]
   j<-set_vertex_attr(j,name="color",index=inf_contact_j,value="orange")
@@ -326,29 +136,25 @@ sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER",
     As_k<-assortativity_degree(k,directed=F) #Degree Assortativity
   )
   names(stats_k)<-c("Number of Components k","Largest Component Size k", "Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k", "Diameter k", "Transitivity k","Proportion of nodes in 2-cores k", "Degree Assortativity k")
-  # Combine effect estimates
-  prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
+  # Combine risk estimates
+  prep<-cbind(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
   names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
-  no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+  no_prep<-cbind(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
   names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
   ef<-prep+no_prep
-  names(ef)<-c("control,","random","additive","regenerated")
-  #compute causal contrasts
-cc<-as.data.frame(t(ef[-1]-ef[1]))
-  names(cc)<-c("random","additive","regenerated")
+  colnames(ef)<-c("control","random","additive","regenerated")
+  #compute causal contrast estimates
+cc<-as.data.frame(ef[,-1]-ef[,1])
+  colnames(cc)<-c("random","additive","regenerated")
   #spread epidemic 
-  # Do not add new treatment over time
-# Follow-up initially treated only
-  g_list<-vector("list",length=tsteps)
-  g_list[[1]]<-g
-  h_list<-vector("list",length=tsteps)
-  h_list[[1]]<-h
-  j_list<-vector("list",length = tsteps)
-  j_list[[1]]<-j
-  k_list<-vector("list",length=tsteps)
-  k_list[[1]]<-k
+  
+  # g_list[[1]]<-g
+  # h_list[[1]]<-h
+  # j_list[[1]]<-j
+  # k_list[[1]]<-k
+  
   for(i in 2:tsteps){
-    plot(g, main=paste("initial time=", i), layout=layout.circle(g))
+    # plot(g, main=paste("initial time=", i), layout=layout.circle(g))
     l_new_infs_treat_g<-ceiling(length(treat_inf_contact_g)*p2)
     l_new_infs_no_treat_g<-ceiling(length(no_treat_inf_contact_g)*p1)
    new_infs_treat_g<-sample(treat_inf_contact_g,size=l_new_infs_treat_g)
@@ -360,11 +166,14 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color %in%c("blue","purple"))]
   no_treat_inf_contact_g<-setdiff(inf_contact_g,treat_inf_contact_g)
   g<-set_vertex_attr(g, name="color",index=treat_inf_contact_g,value="purple")
-  plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
+  # plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
   g<-set_vertex_attr(g,name="color",index=no_treat_inf_contact_g,value="orange")
-  plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
+  # plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
   g_list[[i]]<-g
-
+  #update risks
+  hiv_given_prep_g[i]<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
+  hiv_given_no_prep_g[i]<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
+#random allocation
   l_new_infs_treat_h<-ceiling(length(treat_inf_contact_h)*p2)
   l_new_infs_no_treat_h<-ceiling(length(no_treat_inf_contact_h)*p1)
   new_infs_treat_h<-sample(treat_inf_contact_h,size=l_new_infs_treat_h)
@@ -377,7 +186,10 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
   h<-set_vertex_attr(h,name="color",index=no_treat_inf_contact_h,value="orange") 
   h_list[[i]]<-h
-  
+  #update risks
+  hiv_given_prep_h[i]<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
+  hiv_given_no_prep_h[i]<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h)*p1)/length(no_treat_h),0)
+  #additive allocation
   l_new_infs_treat_j<-ceiling(length(treat_inf_contact_j)*p2)
   l_new_infs_no_treat_j<-ceiling(length(no_treat_inf_contact_j)*p1)
   new_infs_treat_j<-sample(treat_inf_contact_j,size=l_new_infs_treat_j)
@@ -390,7 +202,10 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
   j<-set_vertex_attr(j,name="color",index=no_treat_inf_contact_j,value="orange") 
   j_list[[i]]<-j
-
+  #update risks
+  hiv_given_prep_j[i]<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
+  hiv_given_no_prep_j[i]<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
+#regenerated
   l_new_infs_treat_k<-ceiling(length(treat_inf_contact_k)*p2)
   l_new_infs_no_treat_k<-ceiling(length(no_treat_inf_contact_k)*p1)
   new_infs_treat_k<-sample(treat_inf_contact_k,size=l_new_infs_treat_k)
@@ -403,7 +218,16 @@ cc<-as.data.frame(t(ef[-1]-ef[1]))
   k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
   k<-set_vertex_attr(k,name="color",index=no_treat_inf_contact_k,value="orange") 
   k_list[[i]]<-k
-#    # if(ReWire==TRUE){
+  #update risks
+   hiv_given_prep_k[i]<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
+   hiv_given_no_prep_k[i]<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
+#update combined risks/effects of PrEP
+   prep[i]<-cbind(hiv_given_prep_g[i],hiv_given_prep_h[i],hiv_given_prep_j[i],hiv_given_no_prep_k[i])
+   no_prep[i]<-cbind(hiv_given_no_prep_g[i],hiv_given_no_prep_h[i],hiv_given_no_prep_j[i],hiv_given_no_prep_k[i])
+   ef[i]<-prep[i]+no_prep[i]
+   #update causal contrasts
+   
+   #    # if(ReWire==TRUE){
 #   #rewire graphs keeping degree distribution
 # g<-rewire(g,keeping_degseq(loops=F,niter = 1))
 # k<-rewire(k,keeping_degseq(loops=F,niter=1))
