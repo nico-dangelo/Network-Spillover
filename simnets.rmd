@@ -374,11 +374,13 @@ save(res_rprob,means_rprob,var_rprob,file="Small World Rewiring Probability Resu
 ### Check BA Model
 
 ```{r}
-params_ba<-expand.grid(N=N,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",pow=pow, nsim=nsim,stringsAsFactors = F)
+params_ba<-expand.grid(N=50,phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), model="BA",pow=pow, nsim=nsim,stringsAsFactors = F)
 res_ba<-future_pmap_dfr(params_ba,sim_par)
 means_ba<-res_ba%>%group_by(across(all_of(c("p1","p2"))))%>%summarise(across(col_list,mean))
 var_ba<-res_ba%>%group_by(across(all_of(c("p1","p2"))))%>%summarise(across(col_list,var))
-save(res_ba,)
+save(res_ba, means_ba,var_ba,file="BA check Results.RData")
+lims<-c(min(means_ba[,col_list[2]]),max(means_ba[,col_list[2]]))
+ggplot(means_ba,aes_string(x="p1",y="p2",fill=col_list[2]))+geom_tile()+scale_fill_gradientn(limits=lims,colors=brewer.pal(6,name="RdYlBu"))+xlab("P(HIV|Contact and -PrEP)")+ylab("P(HIV|Contact and PrEP)")
 ```
 
 

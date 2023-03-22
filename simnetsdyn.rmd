@@ -18,30 +18,30 @@ require(animate)
 
 
 ```{r params}
-params<-list(N=100, #network population/ graph order
-model="ER",
-eprob=0.1, #edge formation probability for ER model 
-pow=1, #preferential attachment power for BA model
-nb=20, # neighborhood parameter for small-world model
-rprob=0.05, #rewiring probability for small-world model
-phiv=0.2, # underlying hiv prevalence
-PrEP1=0.2, # PrEP assignment coverage in control treatment (a) 
-PrEP2=0.4, # PrEP assignment coverage in counterfactual treatment (a*)
+N=100 #network population/ graph order
+model="ER"
+eprob=0.1 #edge formation probability for ER model 
+pow=1 #preferential attachment power for BA model
+nb=20 # neighborhood parameter for small-world model
+rprob=0.05 #rewiring probability for small-world model
+phiv=0.2 # underlying hiv prevalence
+PrEP1=0.2 # PrEP assignment coverage in control treatment (a) 
+PrEP2=0.4 # PrEP assignment coverage in counterfactual treatment (a*)
 #HIV risk by contact and PrEP allocation 
-p1=0.2, #P(HIV|Contact and -PrEP)
-p2=0.1, #P(HIV|Contact and PrEP)
-tsteps=10,
-ReWire=T)
-list2env(params,globalenv())
+p1=0.2 #P(HIV|Contact and -PrEP)
+p2=0.1 #P(HIV|Contact and PrEP)
+ReWire=F
+tsteps=10
+
 ```
 
 
 ```{r}
-sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F){
-  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,scale,model,eprob,pow,nb,rprob,rewire)
-  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","rewire")
+sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10){
+  args<-c(N,phiv,PrEP1,PrEP2,p1,p2,model,eprob,pow,nb,rprob,ReWire,tsteps)
+  names(args)<-c("N","phiv","PrEP1","PrEP2","p1","p2","model","eprob","pow","nb","rprob","ReWire","tsteps")
   #parameter check
-  model<-match.arg(model)
+  model<-match.arg(arg=model,choices = c("ER","BA","WS"),several.ok = F)
    # Initial models
   #control scenario graph, 10% assignment prob
   g<-if(model=="ER"){sample_gnp(N,eprob)} else if(model=="BA"){sample_pa(N,power=pow,directed=FALSE)} else if(model=="WS"){sample_smallworld(dim=1,size=N,nei=nb,p=rprob)}
@@ -137,16 +137,19 @@ sim_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model=c("ER",
   )
   names(stats_k)<-c("Number of Components k","Largest Component Size k", "Avg. Betweenness k","Density k","Degree Centralization k","Avg. Geodesic Distance k", "Diameter k", "Transitivity k","Proportion of nodes in 2-cores k", "Degree Assortativity k")
   # Combine risk estimates
-  prep<-cbind(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
+  prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_prep_k)
   names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
-  no_prep<-cbind(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+  no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
   names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
   ef<-prep+no_prep
-  colnames(ef)<-c("control","random","additive","regenerated")
+  names(ef)<-c("control","random","additive","regenerated")
   #compute causal contrast estimates
-cc<-as.data.frame(ef[,-1]-ef[,1])
-  colnames(cc)<-c("random","additive","regenerated")
-  #spread epidemic 
+cc<-as.data.frame(t(ef[-1]-ef[1]))
+  names(cc)<-c("random","additive","regenerated")
+  #results container
+  res<-cbind.data.frame(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
+names(res)<-c(names(args),names(prep), names(no_prep),names(cc),names(stats_g),names(stats_k))
+#spread epidemic 
   
   # g_list[[1]]<-g
   # h_list[[1]]<-h
@@ -161,7 +164,7 @@ cc<-as.data.frame(ef[,-1]-ef[,1])
    new_infs_no_treat_g<-sample(no_treat_inf_contact_g,size=l_new_infs_no_treat_g )
   g<-set_vertex_attr(g,name = "color",index = new_infs_no_treat_g,value="red")
   g<-set_vertex_attr(g,name = "color",index = new_infs_treat_g,value="red")
-  plot(g, main=paste("new cases labelled, time=",i), layout=layout.circle(g))
+  # plot(g, main=paste("new cases labelled, time=",i), layout=layout.circle(g))
   inf_contact_g<-setdiff(unlist(adjacent_vertices(g,v=V(g)[color=="red"])), V(g)[color=="red"])
   treat_inf_contact_g<- V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color %in%c("blue","purple"))]
   no_treat_inf_contact_g<-setdiff(inf_contact_g,treat_inf_contact_g)
@@ -169,10 +172,10 @@ cc<-as.data.frame(ef[,-1]-ef[,1])
   # plot(g, main=paste("treated inf contacts labelled, time=",i), layout=layout.circle(g))
   g<-set_vertex_attr(g,name="color",index=no_treat_inf_contact_g,value="orange")
   # plot(g, main=paste("new inf contacts labelled, time=",i), layout=layout.circle(g))
-  g_list[[i]]<-g
+  # g_list[[i]]<-g
   #update risks
-  hiv_given_prep_g[i]<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
-  hiv_given_no_prep_g[i]<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
+  hiv_given_prep_g<-ifelse(length(treat_g)!=0,(length(treat_inf_contact_g)*p2)/length(treat_g),0)
+  hiv_given_no_prep_g<-ifelse(length(no_treat_g)!=0,(length(no_treat_inf_contact_g)*p1)/length(no_treat_g),0)
 #random allocation
   l_new_infs_treat_h<-ceiling(length(treat_inf_contact_h)*p2)
   l_new_infs_no_treat_h<-ceiling(length(no_treat_inf_contact_h)*p1)
@@ -185,10 +188,10 @@ cc<-as.data.frame(ef[,-1]-ef[,1])
   no_treat_inf_contact_h<-setdiff(inf_contact_h,treat_inf_contact_h)
   h<-set_vertex_attr(h, name="color",index=treat_inf_contact_h,value="purple")
   h<-set_vertex_attr(h,name="color",index=no_treat_inf_contact_h,value="orange") 
-  h_list[[i]]<-h
+  # h_list[[i]]<-h
   #update risks
-  hiv_given_prep_h[i]<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
-  hiv_given_no_prep_h[i]<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h)*p1)/length(no_treat_h),0)
+  hiv_given_prep_h<-ifelse(length(treat_h)!=0,(length(treat_inf_contact_h)*p2)/length(treat_h),0)
+  hiv_given_no_prep_h<-ifelse(length(no_treat_h)!=0,(length(no_treat_inf_contact_h)*p1)/length(no_treat_h),0)
   #additive allocation
   l_new_infs_treat_j<-ceiling(length(treat_inf_contact_j)*p2)
   l_new_infs_no_treat_j<-ceiling(length(no_treat_inf_contact_j)*p1)
@@ -201,10 +204,10 @@ cc<-as.data.frame(ef[,-1]-ef[,1])
   no_treat_inf_contact_j<-setdiff(inf_contact_j,treat_inf_contact_j)
   j<-set_vertex_attr(j, name="color",index=treat_inf_contact_j,value="purple")
   j<-set_vertex_attr(j,name="color",index=no_treat_inf_contact_j,value="orange") 
-  j_list[[i]]<-j
+  # j_list[[i]]<-j
   #update risks
-  hiv_given_prep_j[i]<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
-  hiv_given_no_prep_j[i]<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
+  hiv_given_prep_j<-ifelse(length(treat_j)!=0,(length(treat_inf_contact_j)*p2)/length(treat_j),0)
+  hiv_given_no_prep_j<-ifelse(length(no_treat_j)!=0,(length(no_treat_inf_contact_j)*p1)/length(no_treat_j),0)
 #regenerated
   l_new_infs_treat_k<-ceiling(length(treat_inf_contact_k)*p2)
   l_new_infs_no_treat_k<-ceiling(length(no_treat_inf_contact_k)*p1)
@@ -217,35 +220,38 @@ cc<-as.data.frame(ef[,-1]-ef[,1])
   no_treat_inf_contact_k<-setdiff(inf_contact_k,treat_inf_contact_k)
   k<-set_vertex_attr(k, name="color",index=treat_inf_contact_k,value="purple")
   k<-set_vertex_attr(k,name="color",index=no_treat_inf_contact_k,value="orange") 
-  k_list[[i]]<-k
+  # k_list[[i]]<-k
   #update risks
-   hiv_given_prep_k[i]<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
-   hiv_given_no_prep_k[i]<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
+   hiv_given_prep_k<-ifelse(length(treat_k)!=0,(length(treat_inf_contact_k)*p2)/length(treat_k),0)
+   hiv_given_no_prep_k<-ifelse(length(no_treat_k)!=0,(length(no_treat_inf_contact_k)*p1)/length(no_treat_k),0)
 #update combined risks/effects of PrEP
-   prep[i]<-cbind(hiv_given_prep_g[i],hiv_given_prep_h[i],hiv_given_prep_j[i],hiv_given_no_prep_k[i])
-   no_prep[i]<-cbind(hiv_given_no_prep_g[i],hiv_given_no_prep_h[i],hiv_given_no_prep_j[i],hiv_given_no_prep_k[i])
-   ef[i]<-prep[i]+no_prep[i]
-   #update causal contrasts
-   
+   prep<-c(hiv_given_prep_g,hiv_given_prep_h,hiv_given_prep_j,hiv_given_no_prep_k)
+   names(prep)<-c("hiv_given_prep_g","hiv_given_prep_h","hiv_given_prep_j","hiv_given_prep_k")
+   no_prep<-c(hiv_given_no_prep_g,hiv_given_no_prep_h,hiv_given_no_prep_j,hiv_given_no_prep_k)
+   names(no_prep)<-c("hiv_given_no_prep_g","hiv_given_no_prep_h","hiv_given_no_prep_j","hiv_given_no_prep_k")
+   ef<-prep+no_prep
+ names(ef)<-c("control","random","additive","regenerated")
+ #update causal contrasts
+   cc<-as.data.frame(t(ef[-1]-ef[1]))
+   names(cc)<-c("random","additive","regenerated")
    #    # if(ReWire==TRUE){
 #   #rewire graphs keeping degree distribution
 # g<-rewire(g,keeping_degseq(loops=F,niter = 1))
 # k<-rewire(k,keeping_degseq(loops=F,niter=1))
 # }
- }
-  
-  out<-list("g_list"=g_list,"h_list"=h_list,"j_list"=j_list,"k_list"=k_list)
-  
- 
-  return(out)}
+   res_loop<-cbind(as.data.frame(t(args)),as.data.frame(t(prep)),as.data.frame(t(no_prep)),cc, as.data.frame(t(stats_g)),as.data.frame(t(stats_k)))
+# names(res_loop)<-names(res)
+ res<-rbind(res,res_loop)
+   }
+  return(res)}
 ```
 
 
 
 
 ```{r}
-out<-sim_dyn(params)
-list2env(out,globalenv())
+out<-sim_dyn()
+# list2env(out,globalenv())
 ```
 
 ```{r}
