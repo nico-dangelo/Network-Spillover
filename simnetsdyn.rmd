@@ -11,7 +11,7 @@ require(igraph)
 # require(network)
 # require(networkDynamic)
 # require(intergraph)
-require(EpiModel)
+# require(EpiModel)
 # require(NetSim)
 # require(animate)
 require(purrr)
@@ -258,7 +258,7 @@ res<-rbind(res,res_loop)
 
 ```{r parallel}
 sim_par_dyn<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200){
-  res<-future_map_dfr(1:nsim,~sim_dyn(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2,model=model,eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=ReWire,tsteps=tsteps),.options = furrr_options(seed = TRUE))
+  res<-future_map_dfr(1:nsim,~sim_dyn(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2,model=model,eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=ReWire,tsteps=tsteps),.options = furrr_options(seed = TRUE),.progress = TRUE)
   res<-cbind(res,nsim)
 return(res)
 }
@@ -266,14 +266,18 @@ return(res)
 ```
 
 
-```{r output}
+```{r output check}
 out<-sim_par_dyn(N=N,phiv=phiv,PrEP1 = PrEP1,PrEP2 = PrEP2,p1=p1,p2=p2,model=model,eprob=eprob,pow=pow,nb=nb,rprob=rprob,ReWire = F,tsteps=tsteps,nsim=nsim)
 ```
 
 
 
-```{r}
-
+```{r Network Size}
+params_N_dyn<-tidyr::expand_grid(N=c(20,200),phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+res_N_dyn<-future_pmap_dfr(params_N_dyn,sim_par_dyn, .progress=TRUE)
+col_list=c("random","additive","regenerated")
+means_N_dyn<-res_N_dyn%>%group_by(time,N,p1,p2)%>%summarise(across(col_list,mean))
+vars_N_dyn<-res_N_dyn%>%group_by(time,N,p1,p2)%>%summarise(across(col_list,var))
 ```
 
 
