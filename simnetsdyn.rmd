@@ -17,7 +17,7 @@ require(igraph)
 require(purrr)
 require(furrr)
 require(tidyverse)
-plan("multisession", workers=availableCores()/4)
+plan("multisession", workers=availableCores()/2)
 
 set.seed(1000)
 # options(future.rng.onMisuse="ignore")
@@ -25,11 +25,11 @@ set.seed(1000)
 
 
 ```{r params}
-N=100 #network population/ graph order
+N=20 #network population/ graph order
 model="ER"
 eprob=0.1 #edge formation probability for ER model 
 pow=1 #preferential attachment power for BA model
-nb=20 # neighborhood parameter for small-world model
+nb=5 # neighborhood parameter for small-world model
 rprob=0.05 #rewiring probability for small-world model
 phiv=0.2 # underlying hiv prevalence
 PrEP1=0.2 # PrEP assignment coverage in control treatment (a) 
@@ -273,7 +273,7 @@ out<-sim_par_dyn(N=N,phiv=phiv,PrEP1 = PrEP1,PrEP2 = PrEP2,p1=p1,p2=p2,model=mod
 
 
 ```{r Network Size}
-params_N_dyn<-tidyr::expand_grid(N=c(20,200),phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+params_N_dyn<-tidyr::expand_grid(N=c(20,200),phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=F,tsteps=tsteps,nsim=nsim)
 res_N_dyn<-future_pmap_dfr(params_N_dyn,sim_par_dyn, .options = furrr_options(seed = TRUE), .progress=TRUE)
 col_list=c("random","additive","regenerated")
 means_N_dyn<-res_N_dyn%>%group_by(time,N,p1,p2)%>%summarise(across(all_of(col_list),mean))
@@ -281,31 +281,39 @@ vars_N_dyn<-res_N_dyn%>%group_by(time,N,p1,p2)%>%summarise(across(all_of(col_lis
 ```
 
 ```{r HIV Prevalence}
-params_phiv_dyn<-tidyr::expand_grid(N=20,phiv=seq(0.1,1,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+params_phiv_dyn<-tidyr::expand_grid(N=N,phiv=seq(0.1,1,0.1),PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=F,tsteps=tsteps,nsim=nsim)
 res_phiv_dyn<-future_pmap_dfr(params_phiv_dyn,sim_par_dyn, .options = furrr_options(seed = TRUE), .progress=TRUE)
 means_phiv_dyn<-res_phiv_dyn%>%group_by(time,phiv,p1,p2)%>%summarise(across(all_of(col_list),mean))
 vars_phiv_dyn<-res_phiv_dyn%>%group_by(time,phiv,p1,p2)%>%summarise(across(all_of(col_list),var))
 ```
 
 ```{r p1}
-params_p1_dyn<-tidyr::expand_grid(N=20,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=p2,model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+params_p1_dyn<-tidyr::expand_grid(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=seq(0.1,1,0.1),p2=p2,model="ER",eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=F,tsteps=tsteps,nsim=nsim)
 res_p1_dyn<-future_pmap_dfr(params_p1_dyn,sim_par_dyn, .options = furrr_options(seed = TRUE), .progress=TRUE)
 means_p1_dyn<-res_p1_dyn%>%group_by(time,p1,p2)%>%summarise(across(all_of(col_list),mean))
 vars_p1_dyn<-res_p1_dyn%>%group_by(time,p1,p2)%>%summarise(across(all_of(col_list),var))
 ```
 ```{r p2}
-params_p2_dyn<-tidyr::expand_grid(N=20,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=seq(0.1,1,0.1),model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+params_p2_dyn<-tidyr::expand_grid(N=N,phiv=0.1,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=seq(0.1,1,0.1),model="ER",eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=F,tsteps=tsteps,nsim=nsim)
 res_p2_dyn<-future_pmap_dfr(params_p2_dyn,sim_par_dyn, .options = furrr_options(seed = TRUE), .progress=TRUE)
 means_p2_dyn<-res_p2_dyn%>%group_by(time,p1,p2)%>%summarise(across(all_of(col_list),mean))
 vars_p2_dyn<-res_p2_dyn%>%group_by(time,p1,p2)%>%summarise(across(all_of(col_list),var))
 ```
 
 
+```{r PrEP}
+params_PrEP_dyn<-tidyr::expand_grid(N=N,phiv=phiv,PrEP1=seq(0.1,1,0.1),PrEP2=seq(0.1,1,0.1),p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model="ER",eprob=eprob,pow=pow,nb=nb,rprob=rprob, ReWire=F,tsteps=tsteps,nsim=nsim)
+res_PrEP_dyn<-future_pmap_dfr(params_PrEP_dyn,sim_par_dyn,.options = furrr_options(seed = TRUE), .progress=TRUE)
+```
 
 
 
 
 
+```{r generative model}
+params_model_dyn<-tidyr::expand_grid(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1),model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05, ReWire=F,tsteps=10,nsim=200)
+res_model_dyn<-future_pmap_dfr(params_model_dyn,sim_par_dyn,.options = furrr_options(seed = TRUE), .progress=TRUE)
+```
 
 
 
