@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r libraries}
 # require(EpiModel)
 require(igraph)
-require(reticulate)
+# require(reticulate)
 require(dplyr)
 require(ggplot2)
 require(desplot)
@@ -27,7 +27,7 @@ require(RColorBrewer)
 # require(gganimate)
 require(ggforce)
 require(ggpubr)
-plan("multisession", workers=availableCores()/4)
+plan("multisession", workers = availableCores() / 4)
 
 set.seed(1000)
 ```
@@ -35,21 +35,21 @@ set.seed(1000)
 ## Parameters
 
 ```{r params}
-N<-20 #network population/ graph order
-model="WS"
-eprob<-0.1 #edge formation probability for ER model 
-pow<-1 #preferential attachment power for BA model
-nb<-20 # neighborhood parameter for small-world model
-rprob<-0.05 #rewiring probability for small-world model
-phiv<-0.1 # underlying hiv prevalence
-PrEP1<-0.2 # PrEP assignment coverage in control treatment (a) 
-PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
-#HIV risk by contact and PrEP allocation 
-p1<-0.2 #P(HIV|Contact and -PrEP)
-p2<-0.1 #P(HIV|Contact and PrEP)
-nsim<-200
-plots=T
-scale="additive"
+N <- 20 #network population/ graph order
+model = "ER"
+eprob <- 0.1 #edge formation probability for ER model
+pow <- 1 #preferential attachment power for BA model
+nb <- 20 # neighborhood parameter for small-world model
+rprob <- 0.05 #rewiring probability for small-world model
+phiv <- 0.1 # underlying hiv prevalence
+PrEP1 <- 0.2 # PrEP assignment coverage in control treatment (a)
+PrEP2 <-
+  0.4 # PrEP assignment coverage in counterfactual treatment (a*)
+#HIV risk by contact and PrEP allocation
+p1 <- 0.2 #P(HIV|Contact and -PrEP)
+p2 <- 0.1 #P(HIV|Contact and PrEP)
+nsim <- 200
+plots = T
 ```
 
 ## Simulation Function
@@ -70,6 +70,9 @@ sim <-
            pow = 1,
            nb = 5,
            rprob = 0.05) {
+    #parameter check
+    model <- match.arg(model, several.ok = FALSE)
+    #store arguments
     args <- c(N, phiv, PrEP1, PrEP2, p1, p2, model, eprob, pow, nb, rprob)
     names(args) <-
       c("N",
@@ -83,8 +86,6 @@ sim <-
         "pow",
         "nb",
         "rprob")
-    #parameter check
-    model <- match.arg(model)
     #control scenario graph, PrEP1% assignment prob
     g <-
       if (model == "ER") {
@@ -456,17 +457,47 @@ sim <-
 ## Parallel resampling
 
 ```{r simulation parallel}
-sim_par<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1,model="ER",eprob=0.1,pow=1,nb=5,rprob=0.05,nsim=200){
-  res<-future_map_dfr(1:nsim,~sim(N=N,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2,model=model,eprob=eprob,pow=pow,nb=nb,rprob=rprob),.options = furrr_options(seed =TRUE))
-  res<-cbind(res,nsim)
-  return(res)}
+sim_par <-
+  function(N = 20,
+           phiv = 0.1,
+           PrEP1 = 0.1,
+           PrEP2 = 0.2,
+           p1 = 0.2,
+           p2 = 0.1,
+           model = "ER",
+           eprob = 0.1,
+           pow = 1,
+           nb = 5,
+           rprob = 0.05,
+           nsim = 200) {
+    res <-
+      future_map_dfr(
+        1:nsim,
+        ~ sim(
+          N = N,
+          phiv = phiv,
+          PrEP1 = PrEP1,
+          PrEP2 = PrEP2,
+          p1 = p1,
+          p2 = p2,
+          model = model,
+          eprob = eprob,
+          pow = pow,
+          nb = nb,
+          rprob = rprob
+        ),
+        .options = furrr_options(seed = TRUE)
+      )
+    res <- cbind(res, nsim)
+    return(res)
+  }
 ```
 
 Trying to parallellize sim rather than use simpar, use rerun from purrr?
 Don't use rerun, use a map with sim_par?
 
 ```{r}
-col_list=c("random","additive","regenerated")
+col_list = c("random", "additive", "regenerated")
 ```
 
 
@@ -475,21 +506,37 @@ col_list=c("random","additive","regenerated")
 ### Check sensitivity to network size, plot heatmap by N
 
 ```{r}
-params_N<-tidyr::expand_grid(N=c(20,200), model="ER",phiv=0.1,PrEP1=0.2,PrEP2=0.4,p1=seq(0.1,1,0.1),p2=seq(0.1,1,0.1), nsim=200)
+params_N <-
+  tidyr::expand_grid(
+    N = c(20, 200),
+    model = "ER",
+    phiv = 0.1,
+    PrEP1 = 0.2,
+    PrEP2 = 0.4,
+    p1 = seq(0.1, 1, 0.1),
+    p2 = seq(0.1, 1, 0.1),
+    nsim = 200
+  )
 # future::plan(
 #       list(
 #         future::tweak(
-#           future::multisession, 
-#           workers = 2), 
+#           future::multisession,
+#           workers = 2),
 #         future::tweak(
 #           future::multisession,
 #           workers = 12)
 #         )
 #       )
 set.seed(1000)
-res_N<-future_pmap_dfr(params_N,sim_par, .options = furrr_options(seed = TRUE),.progress = TRUE)
-means_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),mean))
-var_N<-res_N%>%group_by(N,p1,p2)%>%summarise(across(all_of(col_list),var))
+res_N <-
+  future_pmap_dfr(params_N,
+                  sim_par,
+                  .options = furrr_options(seed = TRUE),
+                  .progress = TRUE)
+means_N <-
+  res_N %>% group_by(N, p1, p2) %>% summarise(across(all_of(col_list), mean))
+var_N <-
+  res_N %>% group_by(N, p1, p2) %>% summarise(across(all_of(col_list), var))
 # save(res_N,means_N,var_N,file="Network Size Results.RData")
 ```
 
