@@ -508,7 +508,7 @@ col_list = c("random", "additive", "regenerated")
 ```{r}
 params_N <-
   tidyr::expand_grid(
-    N = c(20, 200),
+    N = c(20, 200,2000),
     model = "ER",
     phiv = 0.1,
     PrEP1 = 0.2,
@@ -537,7 +537,7 @@ means_N <-
   res_N %>% group_by(N, p1, p2) %>% summarise(across(all_of(col_list), mean))
 var_N <-
   res_N %>% group_by(N, p1, p2) %>% summarise(across(all_of(col_list), var))
-# save(res_N,means_N,var_N,file="Network Size Results.RData")
+save(res_N,means_N,var_N,file="Network Size Results.RData")
 ```
 
 ### check sensitivity to sample size-cluster?
@@ -877,7 +877,7 @@ ggplot(means_ba, aes_string(x = "p1", y = "p2", fill = col_list[2])) + geom_tile
 ```
 
 
-
+http://127.0.0.1:18177/graphics/plot_zoom_png?width=1091&height=900
 ## Figures
 
 ### Mean plots
