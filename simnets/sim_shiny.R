@@ -1,5 +1,6 @@
 library(igraph)
 library(multinet)
+set.seed(1000)
 sim_shiny<-function(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2,model=c("ER","BA","WS"),eprob=0.1,pow=1,nb=5,rprob=0.05){
   model<-match.arg(model)
   # plot a random graph, 3 color options

@@ -5,9 +5,9 @@ account: nico-dangelo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7302126
-bundleId: 6726279
+bundleId: 7171545
 url: https://nico-dangelo.shinyapps.io/simnets/
-when: 1673541802.76002
-lastSyncTime: 1673541802.76002
+when: 1683160825.115
+lastSyncTime: 1683160825.11501
 asMultiple: FALSE
 asStatic: FALSE
