@@ -8,7 +8,7 @@ sim <-
            p2 = 0.1,
            plots = F,
            model = c("ER", "BA", "WS"),
-           eprob = 0.1,
+           eprob = 3/N,
            pow = 1,
            nb = 5,
            rprob = 0.05) {
