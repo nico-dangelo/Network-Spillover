@@ -2,20 +2,29 @@ require(igraph)
 require(tidyverse)
 require(purrr)
 source("sim.R")
-N<-100 #network population/ graph order
-eprob<-0.1 #edge formation probability for ER model
-phiv<-0.1 # underlying hiv prevalence
-PrEP1<-0.2 # PrEP assignment coverage in control treatment (a)
-PrEP2<-0.4 # PrEP assignment coverage in counterfactual treatment (a*)
-# HIV risk by contact and PrEP allocation p
-p1<-0.3 #P(HIV|Contact and -PrEP)
-p2<-0.2 #P(HIV|Contact and PrEP)
-nsim<-100
+#get arguments from command line. These will be all be characters in a vector, and need to be coerced to the corrected type
+argv <- commandArgs(TRUE)
+N<-as.numeric(argv[1]) #network population/ graph order
+eprob<-3/N #edge formation probability for ER model 
+phiv<-as.numeric(argv[2]) # underlying hiv prevalence
+PrEP1<-as.numeric(argv[3]) # PrEP assignment coverage in control treatment (a) 
+PrEP2<-as.numeric(argv[4]) # PrEP assignment coverage in counterfactual treatment (a*)
+#HIV risk by contact and PrEP allocation p
+p1<-as.numeric(argv[5]) #P(HIV|Contact and -PrEP)
+p2<-as.numeric(argv[6]) #P(HIV|Contact and PrEP)
+model<-argv[7]
+nsim<-as.numeric(argv[8])
 plots=F
 set.seed(1000)
 system.time({res<-nsim%>%rerun(sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2))})
-res_samp<-do.call("rbind",res)
-res_samp<-cbind(res_samp,nsim=rep(nsim,nrow(res_samp)))
-col_list=c("random","additive","regenerated")
-means_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),mean))
-var_samp<-res_samp%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),var))
+res<-do.call("rbind",res)
+res<-cbind(res,nsim=rep(nsim,nrow(res)))
+col_list=c("random_contrast","additive_contrast","regenerated_contrast")
+#Uncomment these lines to run summary analyses
+#means<-res%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),mean))
+#vars<-res%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),var))
+#Check directory
+setwd("/restricted/projectnb/causal/Nico/output")
+write.table(res,file=paste0("SCC Results","N_",N,"p1_",p1,"p2_",p2,"nsim_",".csv"))
+#If summary dataframes are created, use this save line instead
+#write.table(res,means, vars,file=paste0("SCC Results","N_",N,"p1_",p1,"p2_",p2,"nsim_",".csv"))
