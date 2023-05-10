@@ -16,7 +16,7 @@ sim(N=20,phiv=0.1,PrEP1=0.1,PrEP2=0.2, p1=0.2,p2=0.1, plots=F,model=c("ER","BA",
 ```
 #### Arguments
 * N: the network size/graph order. Must be a positive integer. Default is 20.
-* eprob: the edge formation probability for each graph. Must be a double in $(0,1]$. Default is 0.1.
+* eprob: the edge formation probability for each graph. Must be a double in $(0,1]$. Default is 3/N.
 * phiv: the HIV prevalence on each network. Must be a double in $(0,1)$. Default is 0.1.
 * PrEP1: The control PrEP allocation coverage. Must be a double in $(0,1)$. Default is 0.1.
 * PrEP2: The counterfactual PrEP allocation coverage. Must be a double in $(0,1]$. Default is 0.2.
@@ -38,9 +38,9 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * no_prep vector contains hiv_given_no_prep_.:  the estimated probability of hiv given a node is not assigned to PrEP.
 
 ##### Causal Contrast Estimates
-* ran: On additive scale, the difference (prep[h]+no_prep[h])-(prep[g]+no_prep[g]).
-* add: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
-* regen: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
+* random_contrast: On additive scale, the difference (prep[h]+no_prep[h])-(prep[g]+no_prep[g]).
+* additive_contrast: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
+* regenerated_contrast: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
 ##### Network Summary Statistics
 * Number of [Connected Components](https://en.wikipedia.org/wiki/Component_(graph_theory))
 * Largest Component Size
