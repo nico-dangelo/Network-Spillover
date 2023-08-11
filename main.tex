@@ -41,29 +41,31 @@
 \author[3]{Kareem C Carr}
 \author[4]{Natallia Katenka}
 \author[5]{M Elizabeth Halloran}
-\author[7]{...}
+\author[7]{[Others? Please add]}
 \author[2]{Brandon Marshall}
 \author[6]{Ashley Buchanan}
 \author[1]{Eleanor J Murray}
 \affil[1]{Department of Epidemiology, Boston University School of Public Health, Boston MA, USA
 }
-\affil[2]{...}
+\affil[2]{Department of Epidemiology, Brown University School of Public Health, Providence, RI, USA}
 \affil[3]{Department of Biostatistics, Harvard TH Chan School of Public Health, Harvard University, Boston, MA, USA}
-\affil[4]{...}
-\affil[5]{... }
-\affil[6]{... }
-\affil[7]{... }
+\affil[4]{Department of Statistics, University of Rhode Island, Kingston, RI, USA}
+\affil[5]{Department of Biostatistics, University of Washington, Seattle, WA, USA }
+\affil[6]{Department of Pharmacy Practice, College of Pharmacy, University of Rhode Island, Kingston, RI, USA }
+\affil[7]{...[please check affilations \& amend or add as appropriate].... }
 \renewcommand\Authands{ and }
 
 \date{}
 
 \begin{document}
-\title{Causal Effects on Networks Need to Account for Effect Modification by Network Structure}
+\title{Causal Estimands for Network Effects Accounting for Network Structure}
 
 \maketitle
 
 \begin{abstract}
-TBD
+\textbf{Background:} Understanding networks can provide valuable information on the transmission or sharing of knowledge, infection, resources, or other features among groups of individuals. Empirical networks are often difficult to describe exactly, especially for human populations. To address this, network-based simulation models were developed to aid in estimating patterns which might be expected in real-world networks. Fundamentally, all iterations of a simulation model estimate counterfactuals under the specific set of input parameters. However, formal causal estimands for network effects are lacking.\\
+\textbf{Methods and Results:} We describe the unique challenges for estimating causal network effects and propose a set of causal estimands for estimating network effects under interventions. We demonstrate mathematically, and via simulation modeling, that these effects are dependent on network structure and that both the validity and the interpretation of causal network effects depend on features of the simulation design. We implement examples using Erdős–Rényi, Barabási–Albert, and Watts-Strogatz models and, for all model types, we vary a range of input parameters to demonstrate that the results do not depend on specific model characteristics.\\
+\textbf{Conclusions:} When causal network effects are of interest, simulation design should consider both the network structure and the specific details of the causal question. Each iteration of a simulated network should be subjected to each intervention set of interest, and comparisons made between results from sets of identical starting networks. When summary results are combined across multiple network iterations before comparing interventions, the causal network effect is likely to be biased. This bias is a function of both network size and network connectivity, and arises because of the flow of information between network connections.
 \end{abstract}
 
 \newpage
@@ -227,12 +229,9 @@ As an example, consider Figure \ref{fig: Figure 3}  below. In this image, a rand
     \label{fig: Figure 3}
 \end{figure}
 
+After PrEP assignment in Figure \ref{fig: Figure 3}, the counterfactual outcome over the next time step can be estimated using Equation \ref{eq:9} as follows:
 
-
-
-After PrEP assignment in Figure \ref{fig: Figure 3}, the counterfactual outcome over the next time step can be estimated as follows:
-
-\begin{align}\label{eq:10}
+\begin{align}
 \begin{split}
 Y_{i}\left(\mathbf{\alpha}|G=g\right) & = \frac{\sum_{i=1}^{n}(p_{i})}{N}  \\ 
 & = P\left(Y|PrEP = 0, Contact = 1\right)P\left(PrEP = 1, Contact = 1\right)  \\ \nonumber
@@ -255,9 +254,9 @@ Now, assume we are interested in estimating the causal effect of increasing PrEP
     \label{fig:Figure 6}
 \end{figure}
 
-We can immediately see from comparison with the previous two figures that the structure of this new network is different. However, it still follows the same basic network parameters as the previous network. With the same number of individuals, same baseline HIV prevalence, and same probability of network contacts. There are once again 2 individuals living with HIV and 18 uninfected individuals. Now, 4 uninfected individuals have been assigned to PrEP, only one of whom has an infectious contact. In addition, one other individual not assigned to PrEP has an infectious contact; the remaining 14 uninfected individuals do not have infectious contacts. Now, the counterfactual outcome estimate will depend on the probability of transmission following an infectious contact while on PrEP and while not on PrEP:
+We can immediately see from comparison with the previous two figures that the structure of this new network is different. However, it still follows the same basic network parameters as the previous network. With the same number of individuals, same baseline HIV prevalence, and same probability of network contacts. There are once again 2 individuals living with HIV and 18 uninfected individuals. Now, 4 uninfected individuals have been assigned to PrEP, only one of whom has an infectious contact. In addition, one other individual not assigned to PrEP has an infectious contact; the remaining 14 uninfected individuals do not have infectious contacts. Now, the counterfactual outcome estimated using Equation \ref{eq:9} will depend on the probability of transmission following an infectious contact while on PrEP and while not on PrEP:
 
-\begin{align}\label{eq:11}
+\begin{align}
 \begin{split}
 Y_{i}\left(\mathbf{\alpha*}|G=g*\right) & = \frac{\sum_{i=1}^{n}(p_{i})}{N}  \\ 
 & = P\left(Y|PrEP = 0, Contact = 1\right)P\left(PrEP = 1, Contact = 1\right)  \\ \nonumber
@@ -288,7 +287,7 @@ Next consider a scenario where we retain the original network structure from Fig
 
 Under the Additive treatment pattern, the original two individuals who were treated but did not have infectious contacts continue to receive treatment. We now additionally provide PrEP to two more randomly selected individuals, of whom one dose have an infectious contact. Of the remaining 14 uninfected and untreated individuals, 4 have infectious contacts. We now obtain the following estimate: 
 
-\begin{align}\label{eq:13}
+\begin{align}
 \begin{split}
 Y_{i}\left(\mathbf{\alpha*}|G=g\right) & = \frac{\sum_{i=1}^{n}(p_{i})}{N}  \\ 
 & = P\left(Y|PrEP = 0, Contact = 1\right)P\left(PrEP = 1, Contact = 1\right)  \\ \nonumber
@@ -344,16 +343,16 @@ Another important determinant of the expected bias is the size of the two parame
 
 In each realization, some portion $n \le N$ will have an infectious contact. We can separate all possible network realizations into those in which at least one individual is both treated and has an infectious contact, and those in which all treated individuals have no infectious contact. Only for network realizations of the first type will treatment have any effect on the outcome -- when all treated individuals have no infectious contacts, there is no benefit to treatment. The proportion of networks where at least one treated individual has an infectious contact is (see Appendix \ref{Appendix 1} for derivation):
 
-\begin{equation}\label{eq:16}
+\begin{equation}\label{eq:17}
     \frac{{\binom{N}{k}}-{\binom{N-n}{k}}}{{\binom{N}{k}}}=1-\left(1-\frac{k}{N}\right)^{n}.
 \end{equation}
 
 That is, the probability of at least one node $i$ assigned to treatment with at least one infectious contact for a given network structure $g$ and treatment assignment is:
-\begin{equation}\label{eq:17}
+\begin{equation}\label{eq:18}
     P \coloneqq \mathbb{P}\left(n_{i}=1 \vert k_{i}=1,j,a,a*\right)=1-\left(1-\frac{k}{N}\right)^{n}.
 \end{equation}
 When $P$ is large, the majority of network realizations can be expected to contribute at least some information to the average effect. However, when $P$ is small, we can expect that most network realizations will be uninformative -- that is, most realizations of the network will be ones in which no individual is both treated and exposed to an infectious contact. Therefore, the magnitude of $P$ can provide insight into the number of realizations we need to simulate to obtain a stable estimate of effects across all network structures. In addition, note that
-\begin{equation}\label{eq:18}
+\begin{equation}\label{eq:19}
     \lim_{N \to \infty}P=\begin{cases}0 & k,n \text{ fixed} \\ 1 & k \to N \lor n \to N  \end{cases}
 \end{equation}
 
@@ -547,7 +546,7 @@ Likewise, when we hold the probability of infection given either PrEP (Figure \r
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p1 Mean plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p1 Mean plots.png}
     \caption{Mean risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of  $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$ , with network size of 20,  200 simulation samples,  10\% HIV prevalence at baseline, and an 10 \% probability of infection given contact and PrEP.
     From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes.}
     \label{fig:Figure 11}
@@ -555,7 +554,7 @@ Likewise, when we hold the probability of infection given either PrEP (Figure \r
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p2 Mean plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p2 Mean plots.png}
     \caption{
     Mean risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of  $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$, with network size of 20 ,  200 simulation samples,  10\% HIV prevalence at baseline, and an 10 \% probability of infection given contact and no PrEP.
      From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes.}
@@ -604,56 +603,82 @@ Overall, when network-based causal effects are of interest and the true network 
 \counterwithin{figure}{section}
 \section{Appendix 1: Derivation of  \textit{P}}
 \label{Appendix 1}
-Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$
+Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$.
 
-Assume as before that $N$ is the network population at a given time point, that $k<N$ is the number of individuals that receive treatment, and that $n<N$ is the number of individuals with an infectious contact.
+In the following calculation, we will be using the notation $f(x)\approx g(x)$ to mean that $f(x)=\Theta(g(x))$. Big theta notation is used to denote that there exists $N$ such that for $x>N$, there exist constants $c$ and $d$ such that:
 
- Then, there are $\binom{N}{k}$ unique network configurations.
+ $$c\cdot g(x)< f(x) < d \cdot g(x) $$
+
+It is easy to show that if $0<a<x<b$ and $0<c<y<d$, then $-d<-y<-c$ and $\frac{1}{d}<\frac{1}{y}<\frac{1}{c}$.  Therefore, the following are true:
+\begin{enumerate}
+\item $ac<xy<bd$
+\item $0<\frac{a}{d}<\frac{x}{y}<\frac{b}{c}$
+\end{enumerate}
+
+It follows that if $f_1(x)=\Theta{\left(g_1(x)\right)}$ and $f_1(x)=\Theta{\left(g_2(x)\right)}$ where $f_1$,$f_2$, $g_1$ and $g_2$ are strictly positive then:
+\begin{enumerate}
+\item $f_1(x)f_2(x)=\Theta{\left(g_1(x)g_2(x)\right)}$
+\item $\frac{f_1(x)}{f_2(x)}=\Theta{\left(\frac{g_1(x)}{g_2(x)}\right)}$
+\end{enumerate}
+
+In our notation, this means:
+\begin{enumerate}
+     \item $f_1(x)f_2(x)\approx g_1(x)g_2(x)$ 
+     \item $\frac{f_1(x)}{f_2(x)}\approx \frac{g_1(x)}{g_2(x)}$.
+\end{enumerate}
+
+
+Additionally, we will be using this version of Stirling's approximation,
+
+$$n!= \Theta\left(\sqrt{2\pi n}\left(\frac{n}{e}\right)^n \right)$$
+
+Now, assume that $N$ is the network population at a given time point, that $k<N$ is the number of individuals that receive treatment, and that $n<N$ is the number of individuals with an infectious contact. Then, there are $\binom{N}{k}$ unique network configurations.
  
 The expected number of unique network configurations in which all treated individuals have no infectious contacts (and thus a contribution of 0 to the effect estimate) is then given by $\binom{N-n}{k}$. Then, the proportion of network configurations in which at least one treated individual has at least one infectious contact is 
 \begin{equation} 
-\frac{{\binom{N}{k}}-{\binom{N-n}{k}}}{{\binom{N}{k}}}=1-\frac{{\binom{N-n}{k}}}{{\binom{N}{k}}}    
+\frac{{\binom{N}{k}}-{\binom{N-n}{k}}}{{\binom{N}{k}}}=1-\frac{{\binom{N-n}{k}}}{{\binom{N}{k}}}  \nonumber
 \end{equation}
 Expanding the RHS gives:
 \begin{equation}
-1-\frac{\left(N-n\right)!\left(N-k\right)!}{k!\left(N-n-k\right)!}
+1-\frac{\left(N-n\right)!\left(N-k\right)!}{k!\left(N-n-k\right)!} \nonumber
 \end{equation}
 Using Stirling's Approximation as appropriate,
 \begin{equation}
-\approx 1-\frac{\sqrt{2\pi\left(N-n\right)}\left(\frac{N-n}{e}\right)^{N-n}\sqrt{2\pi\left(N-k\right)}\left(\frac{N-k}{e}\right)^{N-k}}{\sqrt{2\pi N}\left(\frac{N}{e}\right)^{N}\sqrt{2\pi \left(N-n-k\right)}\left(\frac{N-n-k}{e}\right)^{N-n-k}}    
+\approx 1-\frac{\sqrt{2\pi\left(N-n\right)}\left(\frac{N-n}{e}\right)^{N-n}\sqrt{2\pi\left(N-k\right)}\left(\frac{N-k}{e}\right)^{N-k}}{\sqrt{2\pi N}\left(\frac{N}{e}\right)^{N}\sqrt{2\pi \left(N-n-k\right)}\left(\frac{N-n-k}{e}\right)^{N-n-k}}     \nonumber
 \end{equation}
 %see page 2b
 We can then make the following approximations and simplifications:
 \begin{equation}
-    \frac{\sqrt{2\pi \left(N-n\right)}}{\sqrt{2\pi N}}=\sqrt{\frac{N-n}{N}}\approx 1 \text{ for } N>>n\\
+    \frac{\sqrt{2\pi \left(N-n\right)}}{\sqrt{2\pi N}}=\sqrt{\frac{N-n}{N}}\approx 1 \text{ for } N>>n \nonumber\\
     \end{equation}
     \begin{equation}
-    \frac{\sqrt{2 \pi \left(N-k\right)}}{\sqrt{2 \pi \left(N-n-k\right)}}\approx 1
+    \frac{\sqrt{2 \pi \left(N-k\right)}}{\sqrt{2 \pi \left(N-n-k\right)}}\approx 1 \nonumber
 \end{equation}
     \begin{align}
-    \frac{\left(\frac{\left(N-n\right)}{e}\right)^{N-n}}{{\left(\frac{N}{e}\right)^{N}}}&=\frac{\left(N-n\right)^{N-n}e^{N}}{N^{N}e^{N-n}}\\
-     &=\frac{e^{n}}{N^{n}}\left(\frac{N-n}{N}\right)^{N-n}\\
-     &=\frac{e^{n}}{N^{n}}\left(1-\frac{n}{N}\right)^{N-n}\\
-     &=\frac{e^{n}}{N^{n}}\frac{\left(1-\frac{n}{N}\right)^{N}}{\left(1-\frac{n}{N}\right)^{n}}\\
-     &\approx \frac{e^{n}}{N^{n}}\lim_{N \to \infty}\frac{\left(1-\frac{n}{N}\right)^{N}}{\left(1-\frac{n}{N}\right)^{n}}\\
-     &=\frac{e^{n}}{N^{n}}\frac{e^{-n}}{1^{n}}\\
-     &=\frac{1}{N^{n}}
+    \frac{\left(\frac{\left(N-n\right)}{e}\right)^{N-n}}{{\left(\frac{N}{e}\right)^{N}}}&=\frac{\left(N-n\right)^{N-n}e^{N}}{N^{N}e^{N-n}} \nonumber\\
+     &=\frac{e^{n}}{N^{n}}\left(\frac{N-n}{N}\right)^{N-n} \nonumber\\
+     &=\frac{e^{n}}{N^{n}}\left(1-\frac{n}{N}\right)^{N-n} \nonumber\\
+     &=\frac{e^{n}}{N^{n}}\frac{\left(1-\frac{n}{N}\right)^{N}}{\left(1-\frac{n}{N}\right)^{n}} \nonumber\\
+     &\approx \frac{e^{n}}{N^{n}}\lim_{N \to \infty}\frac{\left(1-\frac{n}{N}\right)^{N}}{\left(1-\frac{n}{N}\right)^{n}} \nonumber\\
+     &=\frac{e^{n}}{N^{n}}\frac{e^{-n}}{1^{n}} \nonumber\\
+     &=\frac{1}{N^{n}} \nonumber
 \end{align}
 \begin{align}
-    \frac{\left(\frac{N-k}{e}\right)^{N-k}}{\left(\frac{N-n-k}{e}\right)^{N-n-k}}&\stackrel{M\coloneqq N-k}{=}\frac{\left(\frac{M}{e}\right)^{M}}{\left(\frac{M-n}{e}\right)^{M-n}}\to M^{n}\\
-    \frac{M^{n}}{N^{n}}&=\left(\frac{N-k}{N}\right)^{n}
+    \frac{\left(\frac{N-k}{e}\right)^{N-k}}{\left(\frac{N-n-k}{e}\right)^{N-n-k}}&\stackrel{M\coloneqq N-k}{=}\frac{\left(\frac{M}{e}\right)^{M}}{\left(\frac{M-n}{e}\right)^{M-n}}\to M^{n} \nonumber\\
+    \frac{M^{n}}{N^{n}}&=\left(\frac{N-k}{N}\right)^{n}\nonumber
 \end{align}
 simplifying as appropriate gives
 \begin{align}
-    & \approx 1- \frac{\left(N-n\right)^{N-n}\left(N-k\right)^{N-k}}{N^{N}\left(N-n-k\right)^{N-n-k}}\\
-    &= 1- N^{-N}\left(\frac{N-n}{N}\right)^{N-n}\left(N-k\right)^{n}\left(\frac{N-k}{N-n-k}\right)^{N-n-k}\\
-    &=1-\left(\frac{N^{n}\left(1-\frac{n}{N}\right)^{N}\left(N-k\right)^{n}}{\left(1-\frac{n}{N}\right)^{n}}\right)\left(\frac{N-n-k}{N-k}\right)^{k+n-N}\\
-    &=1-\left(\frac{N^{-n}e^{-n}\left(N-k\right)^{n}}{1}\right)\left(\frac{\left(1-\frac{n}{N-k}\right)^{n}}{\left(1-\frac{n}{N-k}\right)^{N-k}}\right)\\
-    &=1-\frac{N^{-n}\left(N-k\right)^{n}e^{-n}}{e^{-n}}\\
-    &=1-\frac{\left(N-k\right)^{n}}{N^{n}}\\
-    &=1-\left(\frac{N-k}{N}\right)^{n}.
+    & \approx 1- \frac{\left(N-n\right)^{N-n}\left(N-k\right)^{N-k}}{N^{N}\left(N-n-k\right)^{N-n-k}} \nonumber\\
+    &= 1- N^{-N}\left(\frac{N-n}{N}\right)^{N-n}\left(N-k\right)^{n}\left(\frac{N-k}{N-n-k}\right)^{N-n-k} \nonumber\\
+    &=1-\left(\frac{N^{n}\left(1-\frac{n}{N}\right)^{N}\left(N-k\right)^{n}}{\left(1-\frac{n}{N}\right)^{n}}\right)\left(\frac{N-n-k}{N-k}\right)^{k+n-N} \nonumber\\
+    &=1-\left(\frac{N^{-n}e^{-n}\left(N-k\right)^{n}}{1}\right)\left(\frac{\left(1-\frac{n}{N-k}\right)^{n}}{\left(1-\frac{n}{N-k}\right)^{N-k}}\right) \nonumber\\
+    &=1-\frac{N^{-n}\left(N-k\right)^{n}e^{-n}}{e^{-n}} \nonumber\\
+    &=1-\frac{\left(N-k\right)^{n}}{N^{n}} \nonumber\\
+    &=1-\left(\frac{N-k}{N}\right)^{n}.\nonumber
 \end{align}
 
+\newpage
 \section{Appendix 2: Summary Statistics}
 \label {Appendix 2}
 \subsection{Definitions}
@@ -712,24 +737,24 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
     \begin{enumerate}
      
     \item We compute $\mathbb{P}\left( \text{PrEP} \cap \text{Infectious contact}\right)$ as the proportion of the treated set  $T(V_{\text{control}})$ that have an infectious contact: \begin{equation}
-        \mathbb{P}\left( \text{PrEP} \cap \text{Infectious contact}\right)=\frac{\vert IC\left(V_{\text{control}}\right) \bigcap \left({T\left(V_{\text{control}}\right)}\right)\vert}{\vert T\left(V_{\text{control}}\right)\vert}.
+        \mathbb{P}\left( \text{PrEP} \cap \text{Infectious contact}\right)=\frac{\vert IC\left(V_{\text{control}}\right) \bigcap \left({T\left(V_{\text{control}}\right)}\right)\vert}{\vert T\left(V_{\text{control}}\right)\vert}.\nonumber
     \end{equation}
     \item The probability $\mathbb{P}\left(\text{HIV} \vert \text{PrEP}\right)_{\text{control}}$ is then 
     \begin{equation}
-        \mathbb{P}\left(\text{HIV} \vert \text{PrEP}\right)_{\text{control}}=\mathbb{P}\left(\text{HIV} \vert \text{PrEP} \cap \text{Infectious Contact}\right) \mathbb{P}\left(\text{PrEP} \cap \text{Infectious Contact}\right)
+        \mathbb{P}\left(\text{HIV} \vert \text{PrEP}\right)_{\text{control}}=\mathbb{P}\left(\text{HIV} \vert \text{PrEP} \cap \text{Infectious Contact}\right) \mathbb{P}\left(\text{PrEP} \cap \text{Infectious Contact}\right)\nonumber
     \end{equation}
     \end{enumerate}
     \item We then similarly compute the probability of HIV given no treatment in the control scenario, $\mathbb{P} \left(\text{HIV} \vert \neg \text{PrEP}\right)_{\text{control}}$:
     \begin{enumerate}
     \item We compute $\mathbb{P}\left(\neg \text{PrEP} \cap \text{Infectious Contact} \right)  $ as the proportion of untreated susceptible nodes that have an infectious contact:
     \begin{equation}
-        \mathbb{P}\left(\neg \text{PrEP} \cap \text{Infectious Contact} \right)=\frac{\vert IC\left(V_{\text{control}}\right) \bigcap \left({T'\left(V_{\text{control}}\right)}\right)\vert}{\vert T'\left(V_{\text{control}}\right)\vert},
+        \mathbb{P}\left(\neg \text{PrEP} \cap \text{Infectious Contact} \right)=\frac{\vert IC\left(V_{\text{control}}\right) \bigcap \left({T'\left(V_{\text{control}}\right)}\right)\vert}{\vert T'\left(V_{\text{control}}\right)\vert},\nonumber
     \end{equation}
 
     where $T'\left(V_{\text{control}}\right)$ denotes the set of untreated susceptible nodes.
     \item The probability $\mathbb{P}\left(\text{HIV} \vert \neg \text{PrEP}\right)_{\text{control}}$ is then
     \begin{equation}
-        \mathbb{P}\left(\text{HIV} \vert \neg \text{PrEP}\right)_{\text{control}}=\mathbb{P}\left(\text{HIV} \vert \neg \text{PrEP} \cap \text{Infectious Contact}\right) \mathbb{P}\left( \neg \text{PrEP} \cap \text{Infectious Contact}\right).
+        \mathbb{P}\left(\text{HIV} \vert \neg \text{PrEP}\right)_{\text{control}}=\mathbb{P}\left(\text{HIV} \vert \neg \text{PrEP} \cap \text{Infectious Contact}\right) \mathbb{P}\left( \neg \text{PrEP} \cap \text{Infectious Contact}\right).\nonumber
     \end{equation}
     \end{enumerate}
     \item For the ``random" and ``additive" $\text{PrEP}_{2}$ treatment allocation  scenarios, the topology of $G_{\text{control}}$ is fixed, but treatment attributes on the vertex set are varied. 
@@ -752,55 +777,45 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
 
 \newpage
 \section{Example Annotated Networks for all Generative Models}
+\label{sec: D}
+This appendix reproduces example networks for all generative models, demonstrating the relationship between the control network and the random and additive simulation approach for the intervention networks, compared to the regenerated network approach.
+
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Original Figures/ER Network Example.png}
     \caption{Annotated Example ER Network showing color-coded treatment and disease states by network (control vs. regenerated) and allocation strategy(control vs. random, additive)}
-    \label{fig: C1}
+    \label{fig: D1}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Original Figures/BA Network Example.png}
     \caption{Annotated Example BA Network showing color-coded treatment and disease states by network (control vs. regenerated) and allocation strategy(control vs. random, additive)}
-    \label{fig: C2}
+    \label{fig: D2}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics[width=\linewidth]{Original Figures/WS Network Example.png}
     \caption{Annotated Example WS Network showing color-coded treatment and disease states by network (control vs. regenerated) and allocation strategy (control vs. random, additive)}
-    \label{fig: C3}
+    \label{fig: D3}
 \end{figure}
-% %\section{Results by Network Generative Model with Larger Network Size}
-% \label{sec: D}
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\linewidth]{Figures/Large N Generative Model Mean plots.png}
-%     \caption{Mean of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by the model used to generate the networks with $N=200$, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
-%     \label{fig:D1}
-% \end{figure}
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\linewidth]{Figures/Large N Generative Model Variance plots.png}
-%     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by the model used to generate the networks with $N=200$, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
-%     \label{fig:D2}
-% \end{figure}
 
 \newpage
+
 \section{Simulation model results across all input parameter and model type variations}
-\label{Appendix 4}
+\label{sec: F}
 
 \subsection{Erdős–Rényi  Random Graph Models}
 
 \subsubsection{Effect Modification by Network Size}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/Network Size Mean Plot.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/Network Size Mean Plot.png}
     \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
     \label{fig: Figure S4.1}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/Network Size Variance plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/Network Size Variance plots.png}
     \caption{Variance of Causal Contrast estimates  as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by Network Size/Graph Order. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.2}
 \end{figure}
@@ -838,13 +853,13 @@ While it may be more obvious from the Variance plots in Figure \ref{fig:Figure S
 \subsubsection{Effect Modification by \texorpdfstring{$\mathbb{P}[\text{HIV } | \text {Contact } \cap \neg \text{ PrEP}]$}{ℙ[HIV | ¬PrEP]}}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p1 Mean plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p1 Mean plots.png}
     \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$ increases . From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.7}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p1 Variance plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p1 Variance plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$ increases .  From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.8}
 \end{figure}
@@ -852,7 +867,7 @@ From the contrast estimate Mean and Variance plots in figures \ref{fig:Figure S4
 \subsubsection{Effect Modification by \texorpdfstring{$\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \text{ PrEP}\right]$}{ℙ[HIV | PrEP]}}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p2 Mean plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p2 Mean plots.png}
     \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases . From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.9}
 
@@ -860,7 +875,7 @@ From the contrast estimate Mean and Variance plots in figures \ref{fig:Figure S4
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/p2 Variance plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/p2 Variance plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$ increases .  From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.10}
 \end{figure}
@@ -869,37 +884,37 @@ Much like with the underlying risk of HIV given no treatment, we observe effect 
 \subsubsection{Effect Modification by PrEP contrasts in ER model}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Additive Mean Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Additive Mean Plots.png}
     \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP1\% additional vs. random PrEP2-PrEP1 \% PrEP allocation control. Top number indicates PrEP1 \% control coverage. Bottom number is PrEP2 counterfactual coverage. }
     \label{fig:Figure S4.11}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Additive Variance Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Additive Variance Plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2-PrEP1\% additional vs. random PrEP1 \% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure S4.12}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Random Mean Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Random Mean Plots.png}
     \caption{Mean Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure S4.13}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Random Variance Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Random Variance Plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP2\% vs. random PrEP1\% PrEP allocation control. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure S4.14}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Regenerated Mean Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Regenerated Mean Plots.png}
     \caption{Mean of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by  random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage.}
     \label{fig:Figure S4.15}
 \end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/PrEP Regenerated Variance Plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/PrEP Regenerated Variance Plots.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by random PrEP1 \% allocation vs random PrEP2\% allocation on a regenerated network. Top number indicates PrEP1/control coverage. Bottom number is PrEP2 counterfactual coverage. }
     \label{fig:Figure S4.16}
 \end{figure}
@@ -910,7 +925,7 @@ We can observe from the Causal Contrast Mean and Variance plots in Figures \ref{
 \subsubsection{Effect Modification by Network Generating Model with Default Parameters}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/Generative Model Mean plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/Generative Model Mean Plot.png}
     \caption{Mean of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Mean Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Mean Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Mean Contrast of random 40\% allocation on regenerated network vs. random 20\% control. }
     \label{fig:Figure S4.17}
 \end{figure}
@@ -918,7 +933,7 @@ From the Causal Contrast Mean plots in Figure \ref{fig:Figure S4.17} above, we c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Figures/Generative Model Variance plots.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/Generative Model Variance Plot.png}
     \caption{Variance of Causal Contrast estimates as $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$ increase, stratified by stratified by the model used to generate the networks, and by estimator. From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``additive" Variance of Contrast of random 20\% additional vs. random 20\% PrEP allocation control, ``random" Variance of Contrast of random 40\% PrEP allocation vs. random 20\% control, ``regenerated" Variance of Contrast of random 40\% allocation on regenerated network vs. random 20\% control.}
     \label{fig:Figure S4.18}
 \end{figure}
