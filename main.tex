@@ -245,13 +245,13 @@ Y_{i}\left(\mathbf{\alpha}|G=g\right) & = \frac{\sum_{i=1}^{n}(p_{i})}{N}  \\
 
 No individuals have both PrEP and an infectious contact, so the value of $p_2$ does not matter in this particular realization. Likewise, for individuals who have no infectious contacts, regardless of PrEP status they have no probability of infection (in the first time step). Therefore, the outcome will be entirely driven by the probability of transmission with an infectious contact and no PrEP, $p_1$.
 
-Now, assume we are interested in estimating the causal effect of increasing PrEP coverage in networks of this type. A common network simulation approach would be to generate a new network with the same properties as the original network, but in which the PrEP coverage is more common -- say 20\%. Figure \ref{fig:Figure 6} gives an example using a new randomly generated network.
+Now, assume we are interested in estimating the causal effect of increasing PrEP coverage in networks of this type. A common network simulation approach would be to generate a new network with the same properties as the original network, but in which the PrEP coverage is more common -- say 20\%. Figure \ref{fig: Figure 4} gives an example using a new randomly generated network.
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.5]{Original Figures/Network Example 5.png}
     \caption{Re-generated network with 20 \% PrEP coverage randomly assigned to uninfected individuals. The 4 blue nodes represent uninfected individuals assigned to PrEP; the 2 red nodes represent individuals living with HIV; the 14 black nodes are individuals without HIV and not assigned to PrEP. }
-    \label{fig:Figure 6}
+    \label{fig: Figure 4}
 \end{figure}
 
 We can immediately see from comparison with the previous two figures that the structure of this new network is different. However, it still follows the same basic network parameters as the previous network. With the same number of individuals, same baseline HIV prevalence, and same probability of network contacts. There are once again 2 individuals living with HIV and 18 uninfected individuals. Now, 4 uninfected individuals have been assigned to PrEP, only one of whom has an infectious contact. In addition, one other individual not assigned to PrEP has an infectious contact; the remaining 14 uninfected individuals do not have infectious contacts. Now, the counterfactual outcome estimated using Equation \ref{eq:9} will depend on the probability of transmission following an infectious contact while on PrEP and while not on PrEP:
@@ -275,14 +275,14 @@ Y_{i}\left(\mathbf{\alpha*}|G=g*\right) -Y_{i}\left(\mathbf{\alpha}|G=g\right) =
 \end{equation}
 
 
-Next consider a scenario where we retain the original network structure from Figure \ref{fig: Figure 2}, but apply additional PrEP assignment. There are multiple ways in which we can do this, but for simplicity we consider the following two options. In the first, we increase PrEP coverage to 20\% by selecting an additional random 10\% of uninfected individuals to receive treatment (Figure \ref{fig: Figure 4}). In the second, we discard prior treatment status and choose a random 20\% to receive PrEP (Figure \ref{fig:Figure 5}).
+Next consider a scenario where we retain the original network structure from Figure \ref{fig: Figure 2}, but apply additional PrEP assignment. There are multiple ways in which we can do this, but for simplicity we consider the following two options. In the first, we increase PrEP coverage to 20\% by selecting an additional random 10\% of uninfected individuals to receive treatment (Figure \ref{fig: Figure 4}). In the second, we discard prior treatment status and choose a random 20\% to receive PrEP (Figure \ref{fig: Figure 5}).
 
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=0.5]{Original Figures/Network Example 4.png}
     \caption{Additive scenario: Network structure from the control scenario, with an additional 10\%  of uninfected individuals randomly assigned to PreP. Blue nodes represent uninfected individuals assigned to PrEP; red nodes represent individuals living with HIV; black nodes are individuals without HIV and not assigned to PrEP.}
-    \label{fig: Figure 4}
+    \label{fig: Figure 5}
 \end{figure}
 
 Under the Additive treatment pattern, the original two individuals who were treated but did not have infectious contacts continue to receive treatment. We now additionally provide PrEP to two more randomly selected individuals, of whom one dose have an infectious contact. Of the remaining 14 uninfected and untreated individuals, 4 have infectious contacts. We now obtain the following estimate: 
@@ -303,7 +303,7 @@ Y_{i}\left(\mathbf{\alpha*}|G=g\right) & = \frac{\sum_{i=1}^{n}(p_{i})}{N}  \\
     \centering
     \includegraphics[scale=0.5]{Original Figures/Network Example 3.png}
     \caption{Random scenario: Network structure from the control scenario, with a newly selected 20\%  of uninfected individuals randomly assigned to PreP. Blue nodes represent uninfected individuals assigned to PrEP; red nodes represent individuals living with HIV; black nodes are individuals without HIV and not assigned to PreP.}
-    \label{fig:Figure 5}
+    \label{fig:Figure 6}
 \end{figure}
 
 Under the Random treatment pattern, all four of the newly selected PrEP recipients do not have an infectious contact. Of the remaining 14 uninfected and untreated individuals, 5 have infectious contacts. This time, we obtain the following estimate: 
@@ -364,7 +364,7 @@ To demonstrate the potential impact of simulation approach, we repeated our simp
 \subsection{Methods}
 We considered three types of network-based simulation models. Let $G=(V,E)$ be a graph representation of a network, with vertex set $V$ and edge set $E$. Let $N$ denote the \textit{order} of $G$, equal to the cardinality of the vertex set $\vert V \vert$. Network models were parameterized according to network size (graph order), and the generative model specifying the probability distribution from which the graph was drawn or the algorithm used to construct the graph. Let $deg(v)$ denote the degree of node $v$.
 
-We first implemented the  Erdős–Rényi (ER) Random Graph Model with $G(N,p)$ parameterization, sclaing the edge formationn probability by the network size such that $p \coloneqq \frac{3}{N}$. This was done to avoid networks in which every susceptible individual had an infectious contact. 
+We first implemented the  Erdős–Rényi (ER) Random Graph Model with $G(N,p)$ parameterization, scaling the edge formation probability by the network size such that $p \coloneqq \frac{3}{N}$. This was done to avoid networks in which every susceptible individual had an infectious contact. 
 % under which each of $N$ nodes has a binomially-distributed degree:
 % \begin{equation*}
   %  \mathbb{P}(deg(v)=k)=\binom{n-1}{k}p^{k}\left(1-p\right)^{n-1-k}, \quad \forall v \in V . 
@@ -384,9 +384,9 @@ We use a generalization of the BA model, sometimes called the Nonlinear Preferen
 
 Finally, to assess clustering, we used a Watts-Strogatz (WS) small world network model. The construction algorithm relied on 4 parameters: the dimension of the initial lattice (here always equal to 1), the size of the graph in each dimension (here always the final graph order $N$), the connected \textit{neighborhood size} $n$, and the rewiring probability $r$. The initial graph is a lattice where each node is connected to its $n$ neighbors. From the initial lattice graph, edges are randomly ``rewired", i.e. removed and connected to a different node, uniformly with probability $r$.
 
-For each model type, we simulated the counterfactual infection probability after one time-step when 10\% of uninfected individuals were prescribed PrEP at random. We assume that treatment is assigned at random to all eligible (uninfected) individuals, with no attempt to target treatment based on an individual's outcome risk. While this is unrealistic for many real-world examples, in practice we generally do not with certainty whether an individual will or will not have an infectious contact at the time of treatment. In addition, we focus on a single time-step to avoid consideration of time-varying network structure changes.
+For each model type, we simulated the counterfactual infection probability after one time-step when 20\% of uninfected individuals were prescribed PrEP at random. We assume that treatment is assigned at random to all eligible (uninfected) individuals, with no attempt to target treatment based on an individual's outcome risk. While this is unrealistic for many real-world examples, in practice we generally do not with certainty whether an individual will or will not have an infectious contact at the time of treatment. In addition, we focus on a single time-step to avoid consideration of time-varying network structure changes.
 
-In addition, we simulated comparison counterfactual data under 20\% of uninfected individuals prescribed PrEP, using the three approaches described in the previous simplified example: random reassignment of treatment on the same network realization (random condition); additive assignment of treatment on the same network realization (additive condition); and random reassignment of treatment on a regenerated network (regeneration condition). 
+In addition, we simulated comparison counterfactual data under 40\% of uninfected individuals prescribed PrEP, using the three approaches described in the previous simplified example: random reassignment of treatment on the same network realization (random condition); additive assignment of treatment on the same network realization (additive condition); and random reassignment of treatment on a regenerated network (regeneration condition). 
 
 We estimated the average overall effect of 40\% versus 20\% PrEP coverage using the average counterfactual comparisons as described in the simplified example. Across a range of input parameters and model types, we present the risk difference estimate of the average overall effect using the following comparison approaches: (1) Additive approach -- 40\% coverage is achieved by adding an additional 20\% coverage to the existing 20\% coverage on a given network realization; (2) Random approach -- 40\% and 20\% coverage estimates obtained from random treatment on a given network realization; and (3) Regenerated approach -- 40\% and 20\% coverage estimates obtained from random treatment on different network realizations.
 
@@ -525,11 +525,11 @@ We see similar patterns when we hold the network size fixed but vary the number 
     \includegraphics[width=\linewidth]{Corrected Figures/Resampling Size Variance Plot.png}
     \caption{Variance of risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$, stratified by number of simulations sampled when network size is 20 %%PLEASE ADD%%. 
     From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes. }
-    \label{fig:Figure 9}
+    \label{fig:Figure 8}
 \end{figure}
 
 \subsubsection{Probabilities of infectious contact and infection given contact}
-As described above, we anticipate that as either the proportion of individuals with an infectious contact or the proportion treated increases to the size of the uninfected network nodes, the proportion of network realizations in which at least one node has both treatment and an infectious contact will increase towards 100\%. However, at higher values of treatment and/or infectious contact, we might also expect to see greater variation in the \textit{number} of nodes with both treatment and an infectious contact across network realizations. This is what we see in the simulation -- comparing the estimated risk difference across increasing HIV infection prevalence (and thus increasing probability that any uninfected individual has an infectious contact), we see that the variance is relatively constant when using the Additive approach but very variable when using the Regenerated approach (Figure \ref{fig:Figure 10}.
+As described above, we anticipate that as either the proportion of individuals with an infectious contact or the proportion treated increases to the size of the uninfected network nodes, the proportion of network realizations in which at least one node has both treatment and an infectious contact will increase towards 100\%. However, at higher values of treatment and/or infectious contact, we might also expect to see greater variation in the \textit{number} of nodes with both treatment and an infectious contact across network realizations. This is what we see in the simulation -- comparing the estimated risk difference across increasing HIV infection prevalence (and thus increasing probability that any uninfected individual has an infectious contact), we see that the variance is relatively constant when using the Additive approach but very variable when using the Regenerated approach (Figure \ref{fig:Figure 9}.
 
 
 \begin{figure}[H]
@@ -537,11 +537,11 @@ As described above, we anticipate that as either the proportion of individuals w
     \includegraphics[width=\linewidth]{Corrected Figures/HIV Prevalence Variance Plot.png}
     \caption{Variance of risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$, stratified by starting HIV prevalence in the network with network size of 20 and 200 simulation samples.
     From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes.}
-    \label{fig:Figure 10}
+    \label{fig:Figure 9}
 \end{figure}
 
 
-Likewise, when we hold the probability of infection given either PrEP (Figure \ref{fig:Figure 11}) or no PrEP (Figure \ref{fig:Figure 12}) constant and vary the other, we see that the estimated mean risk differences are much more consistent when using the Additive approach compared to the Regenerated approach. 
+Likewise, when we hold the probability of infection given either PrEP (Figure \ref{fig:Figure 10}) or no PrEP (Figure \ref{fig:Figure 11}) constant and vary the other, we see that the estimated mean risk differences are much more consistent when using the Additive approach compared to the Regenerated approach. 
 
 
 \begin{figure}[H]
@@ -549,7 +549,7 @@ Likewise, when we hold the probability of infection given either PrEP (Figure \r
     \includegraphics[width=\linewidth]{Corrected Figures/p1 Mean plots.png}
     \caption{Mean risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of  $\mathbb{P}\left[\text{HIV } \vert \text {Contact } \cap \neg \text{ PrEP}\right]$ , with network size of 20,  200 simulation samples,  10\% HIV prevalence at baseline, and an 10 \% probability of infection given contact and PrEP.
     From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes.}
-    \label{fig:Figure 11}
+    \label{fig:Figure 10}
 \end{figure}
 
 \begin{figure}[H]
@@ -558,13 +558,12 @@ Likewise, when we hold the probability of infection given either PrEP (Figure \r
     \caption{
     Mean risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of  $\mathbb{P}\left[\text{HIV } \vert \text{ PrEP}\right]$, with network size of 20 ,  200 simulation samples,  10\% HIV prevalence at baseline, and an 10 \% probability of infection given contact and no PrEP.
      From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes.}
-    \label{fig:Figure 12}
+    \label{fig:Figure 11}
 
 \end{figure}
 
-
 \subsubsection{Network model type}
-The patterns observed with the Erdos-Renyi network graphs were even more pronounced using the Barabasi-Albert scale-free model,  but less so with the Watts-Strogatz Small-world model (Figure \ref{fig:Figure 13}). Likely this is because of less variation in allowed contact patterns between WS network realizations, given the requirement of a fully-connected graph. 
+The patterns observed with the Erdos-Renyi network graphs were even more pronounced using the Barabasi-Albert scale-free model,  but less so with the Watts-Strogatz Small-world model (Figure \ref{fig:Figure 12}). Likely this is because of less variation in allowed contact patterns between WS network realizations, given the requirement of a fully-connected graph. 
 
 
 \begin{figure}[H]
@@ -573,7 +572,7 @@ The patterns observed with the Erdos-Renyi network graphs were even more pronoun
     \caption{Variance of risk difference estimates comparing number of new infections when 40\% versus 20\% of uninfected nodes are treated with PrEP across varying levels of $\mathbb{P}\left[\text{HIV} \vert \neg \text{PrEP} \cap \text{Contact}\right]$ and $\mathbb{P}\left[\text{HIV} \vert \text{PrEP} \cap \text{Contact}\right]$, stratified by Network Generative Model with a Network Size of 50 and using 200 simulation samples %%PLEASE ADD%%. 
     From left to right, ``BA" the Barabási–Albert scale-free model, ``ER" the Erdős–Rényi Random Graph model, ``WS" the Watts-Strogatz Small-World model. From top to bottom: ``Additive" approach increases proportion on PrEP compared to a given network realization and given set of treated nodes; ``Random" approach compares PrEP allocation levels for a given network realization, without fixing the treated nodes; ``Regenerated" approach compares PrEP levels without fixing network realization or treated nodes. 
     }
-    \label{fig:Figure 13}
+    \label{fig:Figure 12}
 \end{figure}
 
 
@@ -601,7 +600,7 @@ Overall, when network-based causal effects are of interest and the true network 
 
 \appendix
 \counterwithin{figure}{section}
-\section{Appendix 1: Derivation of  \textit{P}}
+\section{Derivation of  \textit{P}}
 \label{Appendix 1}
 Here we describe the details of the definition for $P$, the probability of at least one node $i$ in a network being assigned to treatment with at least one infectious contact for a given network structure $j$ and a given treatment $a$ or $a*$.
 
@@ -679,7 +678,7 @@ simplifying as appropriate gives
 \end{align}
 
 \newpage
-\section{Appendix 2: Summary Statistics}
+\section{Summary Statistics}
 \label {Appendix 2}
 \subsection{Definitions}
 \begin{definition}[Connected Components]
@@ -704,6 +703,7 @@ Transitivity is the proportion of closed triangles in a graph.
 \begin{definition}[$k$-core decomposition]
 A $k$-core of a graph is a subgraph in which all nodes are connected to at least $k$ other nodes in the subgraph.
 \end{definition}
+
 \subsection{Results by Network Model}
 \begin{figure}[H]
     \centering
@@ -711,16 +711,8 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
     \caption{Select Network Summary Statistics by Network Generative Model}
     \label{fig:Figure B1}
 \end{figure}
-% \section{Expanded Effect Definitions}
 
-% \subsection{Overall Effect}
-%As before,  let $Y$ be the outcome of interest, $a$, $a∗$ be counterfactuals of treatment strategy $A$, and $j$ be an identifier of a network.
-% The Overall Effect (OE) at timestep $t$ of counterfactual PrEP allocation $a>a*$ is the difference of the marginal population average potential outcomes under $a$ and $a*$:
-% \begin{equation}
-%     OE(a)=\mathbb{E} [Y_{t}^{a}]-\mathbb{E}[Y_{t}^{a*}].
-% \end{equation}
-
-
+The network summary statistics in \ref{fig:Figure B1} for each network model confirm the characteristics we expect for each generative model. Barabasi-Albert and Watts-Strogatz
 \newpage
 \section{Algorithm for simulating the average overall effect on networks}
 \label{Appendix 3}
@@ -777,7 +769,7 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
 
 \newpage
 \section{Example Annotated Networks for all Generative Models}
-\label{sec: D}
+\label{Appendix 4}
 This appendix reproduces example networks for all generative models, demonstrating the relationship between the control network and the random and additive simulation approach for the intervention networks, compared to the regenerated network approach.
 
 \begin{figure}
@@ -802,7 +794,7 @@ This appendix reproduces example networks for all generative models, demonstrati
 \newpage
 
 \section{Simulation model results across all input parameter and model type variations}
-\label{sec: F}
+\label{Appendix 5}
 
 \subsection{Erdős–Rényi  Random Graph Models}
 
