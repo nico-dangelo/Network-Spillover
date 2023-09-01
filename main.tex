@@ -62,6 +62,7 @@
 
 \maketitle
 
+\newpage
 \begin{abstract}
 \textbf{Background:} Understanding networks can provide valuable information on the transmission or sharing of knowledge, infection, resources, or other features among groups of individuals. Empirical networks are often difficult to describe exactly, especially for human populations. To address this, network-based simulation models were developed to aid in estimating patterns which might be expected in real-world networks. Fundamentally, all iterations of a simulation model estimate counterfactuals under the specific set of input parameters. However, formal causal estimands for network effects are lacking.\\
 \textbf{Methods and Results:} We describe the unique challenges for estimating causal network effects and propose a set of causal estimands for estimating network effects under interventions. We demonstrate mathematically, and via simulation modeling, that these effects are dependent on network structure and that both the validity and the interpretation of causal network effects depend on features of the simulation design. We implement examples using Erdős–Rényi, Barabási–Albert, and Watts-Strogatz models and, for all model types, we vary a range of input parameters to demonstrate that the results do not depend on specific model characteristics.\\
@@ -707,12 +708,12 @@ A $k$-core of a graph is a subgraph in which all nodes are connected to at least
 \subsection{Results by Network Model}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{Original Figures/Network Summary Statistics.png}
+    \includegraphics[width=\linewidth]{Corrected Figures/Network Summary Statistics.png}
     \caption{Select Network Summary Statistics by Network Generative Model}
     \label{fig:Figure B1}
 \end{figure}
 
-The network summary statistics in \ref{fig:Figure B1} for each network model confirm the characteristics we expect for each generative model. Barabasi-Albert and Watts-Strogatz
+The network summary statistics in \ref{fig:Figure B1} for each network model confirm the characteristics we expect for each generative model. Barabasi-Albert and Watts-Strogatz both have a single connected component, as they are connected graphs by design. The number of connected components in Erdos-Renyi model graphs varies widely. The sizes of the largest component is equivalent to the graph order in BA and WS models, but is variable in ER models. Watts-Strogatz models have shorter average path lengths than ER models, thus betweenness centrality for any given node decreases. Watts-Strogatz models are designed to have high clustering and short average path lengths, and this is reflected in high values of edge density and transitivity (also called global clustering,) with relatively low geodesic distance and diameter. By contrast, the preferential attachment and power-law degree distribution of Barabasi-Albert graphs results in relatively low density and transitivity, and relatively high diameter. As connected graphs, the Watts-Strogatz and Barabasi-Albert models do not have meaningful $k$-core decompositions, so the 2-core proportions are identically zero for both.
 \newpage
 \section{Algorithm for simulating the average overall effect on networks}
 \label{Appendix 3}
