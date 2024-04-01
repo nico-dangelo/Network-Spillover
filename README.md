@@ -67,6 +67,10 @@ sim_par(...)
 * nsim: the number of simulations to be run for each combination of other parameters. Must be a positive integer. Default is 100.
 #### Value
 An nsim $\times$ 37 dataframe containing the same outputs as sim() with an index nsim for the set (number of simulations) to which an output row belongs.
+### sim_scc.R
+#### Description
+R script for use on a Shared Computing Cluster (SCC)
+#### Usage
 ### simnets.rmd 
 #### Description
 An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
