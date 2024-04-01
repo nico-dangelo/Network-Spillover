@@ -3,6 +3,7 @@ Functions for estimation of causal effects under spillover on networks of PrEP o
 ## Contents 
 * [sim.R](/sim.R)
 * [sim_par.R](/sim_par.R)
+* sim_scc.R(/sim_scc.R)
 * [simnets.rmd](/simnets.rmd)
 * [Figures](/Figures)
 * [Data](/Data)
