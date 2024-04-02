@@ -6,7 +6,7 @@ Functions for estimation of causal effects under spillover on networks of PrEP o
 * [sim_scc.R](/sim_scc.R)
 * [simnets.rmd](/simnets.rmd)
 * [sim_submit.sh](sim_submit.sh)
-* [sim_submit_ER_pnly.sh](sim_submit_ER_only.sh)
+* [sim_submit_ER_only.sh](sim_submit_ER_only.sh)
 * [Figures](/Figures)
 * [Data](/Data)
 ### sim.R
@@ -69,8 +69,11 @@ sim_par(...)
 An nsim $\times$ 37 dataframe containing the same outputs as sim() with an index nsim for the set (number of simulations) to which an output row belongs.
 ### sim_scc.R
 #### Description
-R script for use on a Shared Computing Cluster (SCC)
+R script for use on a Shared Computing Cluster (SCC). 
 #### Usage
+By default, only computes simulation resultswith nsim replications, but has optional lines to compute summary statistics and export them.
+#### Value
+CSV files of tables conatining outputs of sim function. See [sim.R](/sim.R).
 ### simnets.rmd 
 #### Description
 An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
