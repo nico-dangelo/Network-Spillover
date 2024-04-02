@@ -86,7 +86,10 @@ A folder containing RData files for all results, computed means, and variances f
 ### sim_submit.sh
 A shell script for submitting batches of jobs for a given combination of parameters on a shared computing cluster.
 #### Arguments
-For loops containing sequences of each parameter's input values. To restrict to a subset of inputs for a given parameter, changed the list to a singleton. It is best to copy the "for" line of the loop and comment the original out. Be mindful of indentation.
-
+For loops containing sequences of each parameter's input values. 
+#### Usage
+To restrict to a subset of inputs for a given parameter, changed the list to a singleton. It is best to copy the "for" line of the loop and comment the original out. Be mindful of indentation.
+### sim_submit_ER_only.sh
+Shell script identical to sim_submit.sh, but restricted to Erdős–Rényi random graphs. Used for most parameter analyses.
 ### Shiny App
 ####  Interactive Network plots with options for generative model and allocation parameters are available via the Shiny App [simnets](http://nico-dangelo.shinyapps.io/simnets?_ga=2.198510827.570187884.1665692175-808405130.1665692175) 
