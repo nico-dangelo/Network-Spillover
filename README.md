@@ -88,7 +88,7 @@ A shell script for submitting batches of jobs for a given combination of paramet
 #### Arguments
 For loops containing sequences of each parameter's input values. 
 #### Usage
-To restrict to a subset of inputs for a given parameter, changed the list to a singleton. It is best to copy the "for" line of the loop and comment the original out. Be mindful of indentation.
+To restrict to a subset of inputs for a given parameter, change the sequence to a singleton. It is best to copy the "for" line of the loop and comment the original out. Be mindful of indentation.
 ### sim_submit_ER_only.sh
 Shell script identical to sim_submit.sh, but restricted to Erdős–Rényi random graphs. Used for most parameter analyses.
 ### Shiny App
