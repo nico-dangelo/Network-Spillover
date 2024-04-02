@@ -74,6 +74,7 @@ R script for use on a Shared Computing Cluster (SCC). Essentially a batch altern
 By default, only computes simulation results with nsim replications, but has optional lines to compute summary statistics and export them.
 #### Value
 CSV files of tables containing outputs of sim function. See [sim.R](/sim.R).
+
 ### simnets.rmd 
 #### Description
 An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
@@ -81,5 +82,11 @@ An Rmarkdown file that implements simulations across combinations of all paramet
 ### Data 
 #### Description 
 A folder containing RData files for all results, computed means, and variances for each parameter. Uses default arguments for non-graph-model parameters with ER graphs. For model-related parameters, uses $N=50$.
+
+### sim_submit.sh
+A shell script for submitting batches of jobs for a given combination of parameters on a shared computing cluster.
+#### Arguments
+For loops containing sequences of each parameter's input values. To restrict to a subset of inputs for a given parameter, changed the list to a singleton. It is best to copy the "for" line of the loop and comment the original out. Be mindful of indentation.
+
 ### Shiny App
 ####  Interactive Network plots with options for generative model and allocation parameters are available via the Shiny App [simnets](http://nico-dangelo.shinyapps.io/simnets?_ga=2.198510827.570187884.1665692175-808405130.1665692175) 
