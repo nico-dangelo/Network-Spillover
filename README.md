@@ -73,7 +73,7 @@ R script for use on a Shared Computing Cluster (SCC). Essentially a batch altern
 #### Usage
 By default, only computes simulation results with nsim replications, but has optional lines to compute summary statistics and export them.
 #### Value
-CSV files of tables conatining outputs of sim function. See [sim.R](/sim.R).
+CSV files of tables containing outputs of sim function. See [sim.R](/sim.R).
 ### simnets.rmd 
 #### Description
 An Rmarkdown file that implements simulations across combinations of all parameters. Controls parallel implementation via future arguments, generates dataframes of results for each manipulated parameter, as well as summary statistics and plots/figures.
