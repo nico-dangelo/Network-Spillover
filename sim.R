@@ -418,16 +418,19 @@ sim <-
       "p_noprep_k")
 
     ef <- prep*p_prep + no_prep*p_noprep
-    names(ef) <- c("control,", "random", "additive", "regenerated")
+    names(ef) <- c("Y^control", "Y^random", "Y^additive", "Y^regenerated")
     
     #compute causal contrasts
     cc <- as.data.frame(t(ef[-1] - ef[1]))
-    names(cc) <- c("random", "additive", "regenerated")
+    names(cc) <- c("RD_random", "RD_additive", "RD_regenerated")
     res <-
       cbind(
         as.data.frame(t(args)),
         as.data.frame(t(prep)),
         as.data.frame(t(no_prep)),
+        as.data.frame(t(p_prep)),
+        as.data.frame(t(p_noprep)),
+        as.data.frame(t(ef)),
         cc,
         as.data.frame(t(stats_g)),
         as.data.frame(t(stats_k))
@@ -437,6 +440,9 @@ sim <-
         names(args),
         names(prep),
         names(no_prep),
+        names(p_prep),
+        names(p_noprep),
+        names(ef),
         names(cc),
         names(stats_g),
         names(stats_k)
