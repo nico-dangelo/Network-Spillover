@@ -62,11 +62,14 @@ sim <-
         layout = coords
       )
     }
+    #inf_contact_g is the list of all uninfected nodes with an adjacent infected node
     inf_contact_g <-
       setdiff(unlist(adjacent_vertices(g, v = V(g)[color == "red"])), V(g)[color ==
                                                                              "red"])
     #compute P(HIV|PrEP)
+    #treat_g is list of treated & uninfected nodes
     treat_g <- V(g)[V(g)$color == "blue"]
+    #treat_inf_contact_g is list of treated & uninfected nodes with infected adjacent node
     treat_inf_contact_g <-
       V(g)[inf_contact_g][which(V(g)[inf_contact_g]$color == "blue")]
     g <-
@@ -89,6 +92,9 @@ sim <-
         layout = coords
       )
     }
+    #Computes the number of people with incident HIV in time-step among those given PReP.
+    #length(treat_inf_contact_g) = number (Ai=1 & Ei=1),  p2 = P(Y=1|Ai=1, Ei = 1), length(treat_g) = number treated (Ai=1)
+    #so hiv_given_prep_g = P(y=1|Ai=1) on this network
     hiv_given_prep_g <-
       ifelse(length(treat_g) != 0, (length(treat_inf_contact_g) * p2) / length(treat_g), 0)
     #Compute P(HIV|-PrEP)
@@ -97,6 +103,10 @@ sim <-
     hiv_given_no_prep_g <-
       ifelse(length(no_treat_g) != 0, (length(no_treat_inf_contact_g) * p1) /
                length(no_treat_g), 0)
+    #Compute realized P(PrEP+) & P(PrEP-)
+    p_prep_g <- ifelse(length(treat_g)!=0, (length(treat_g))/(length(treat_g)+length(no_treat_g)))
+    p_noprep_g <-ifelse(length(no_treat_g)!=0, (length(no_treat_g))/(length(treat_g)+length(no_treat_g)))
+    
     #Randomly assign PrEP2% overall (shuffle attributes)
     l_hiv_h <- round((gorder(g) * phiv), 0)
     l_PrEP2_h <- round(((gorder(g) - l_hiv_h) * PrEP2), 0)
@@ -150,6 +160,11 @@ sim <-
     hiv_given_no_prep_h <-
       ifelse(length(no_treat_h) != 0, (length(no_treat_inf_contact_h) * p1) /
                length(no_treat_h), 0)
+    #Compute realized P(PrEP+) & P(PrEP-)
+    p_prep_h <- ifelse(length(treat_h)!=0, (length(treat_h))/(length(treat_h)+length(no_treat_h)))
+    p_noprep_h <-ifelse(length(no_treat_h)!=0, (length(no_treat_h))/(length(treat_h)+length(no_treat_h)))
+
+    
     #duplicate network structure, additional PrEP2-PrEP1% treated
     l_hiv_j <- round((gorder(g) * phiv), 0)
     l_PrEP2_j <- round(((gorder(g) - l_hiv_j) * PrEP2), 0)
@@ -205,6 +220,10 @@ sim <-
     hiv_given_no_prep_j <-
       ifelse(length(no_treat_j) != 0, (length(no_treat_inf_contact_j) * p1) /
                length(no_treat_j), 0)
+    #Compute realized P(PrEP+) & P(PrEP-)
+    p_prep_j <- ifelse(length(treat_j)!=0, (length(treat_j))/(length(treat_j)+length(no_treat_j)))
+    p_noprep_j <-ifelse(length(no_treat_j)!=0, (length(no_treat_j))/(length(treat_j)+length(no_treat_j)))
+    
     # Regenerated graph
     k <-
       if (model == "ER") {
@@ -273,6 +292,12 @@ sim <-
     hiv_given_no_prep_k <-
       ifelse(length(no_treat_k) != 0, (length(no_treat_inf_contact_k) * p1) /
                length(no_treat_k), 0)
+    #Compute realized P(PrEP+) & P(PrEP-)
+    p_prep_k <- ifelse(length(treat_k)!=0, (length(treat_k))/(length(treat_k)+length(no_treat_k)))
+    p_noprep_k <-ifelse(length(no_treat_k)!=0, (length(no_treat_k))/(length(treat_k)+length(no_treat_k)))
+
+
+    
     #Network Summary Statistics
     stats_g <- c(
       Co_g <- count_components(g),
@@ -344,7 +369,7 @@ sim <-
         "Proportion of nodes in 2-cores k",
         "Degree Assortativity k"
       )
-    # Combine effect estimates
+    # Combine effect estimates -- P(HIV) = P(HIV|Prep-)*P(Prep-) + P(HIV|Prep+)*P(Prep+)
     prep <-
       c(hiv_given_prep_g,
         hiv_given_prep_h,
@@ -355,6 +380,17 @@ sim <-
         "hiv_given_prep_h",
         "hiv_given_prep_j",
         "hiv_given_prep_k")
+  p_prep<-c(
+      p_prep_g, 
+      p_prep_h,
+      p_prep_j, 
+      p_prep_k
+    )
+    names(p_prep)<-
+    c("p_prep_g",
+      "p_prep_h",
+      "p_prep_i",
+      "p_prep_k")
     no_prep <-
       c(
         hiv_given_no_prep_g,
@@ -369,8 +405,21 @@ sim <-
         "hiv_given_no_prep_j",
         "hiv_given_no_prep_k"
       )
-    ef <- prep + no_prep
+    p_noprep<-c(
+      p_noprep_g, 
+      p_noprep_h,
+      p_noprep_j, 
+      p_noprep_k
+    )
+    names(p_noprep)<-
+    c("p_noprep_g",
+      "p_noprep_h",
+      "p_noprep_i",
+      "p_noprep_k")
+
+    ef <- prep*p_prep + no_prep*p_noprep
     names(ef) <- c("control,", "random", "additive", "regenerated")
+    
     #compute causal contrasts
     cc <- as.data.frame(t(ef[-1] - ef[1]))
     names(cc) <- c("random", "additive", "regenerated")
