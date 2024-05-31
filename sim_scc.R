@@ -25,6 +25,6 @@ col_list=c("random_contrast","additive_contrast","regenerated_contrast")
 #vars<-res%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),var))
 #Check directory
 setwd("/restricted/projectnb/causal/Nico/output")
-write.table(res,file=paste0("SCC Results","N_",N,"p1_",p1,"p2_",p2,"nsim_",".csv"))
+write.table(res,file=paste0("SCC Results","N_",N,"p1_",p1,"p2_",p2,"nsim_",nsim,".csv"))
 #If summary dataframes are created, use this save line instead
 #write.table(res,means, vars,file=paste0("SCC Results","N_",N,"p1_",p1,"p2_",p2,"nsim_",".csv"))
