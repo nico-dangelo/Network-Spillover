@@ -41,9 +41,9 @@ effect estimate vectors (prep, no_prep) and causal contrast estimates (ran, add,
 * no_prep vector contains hiv_given_no_prep_.:  the estimated probability of hiv given a node is not assigned to PrEP.
 
 ##### Causal Contrast Estimates
-* random_contrast: On additive scale, the difference (prep[h]+no_prep[h])-(prep[g]+no_prep[g]).
-* additive_contrast: On additive scale, the difference (prep[j]+no_prep[j])-(prep[g]+no_prep[g]).
-* regenerated_contrast: On additive scale, the difference (prep[k]+no_prep[k])-(prep[g]+no_prep[g]).
+* RD_random: On additive scale, the risk difference for the random allocation.
+* RD_additive: On additive scale, the risk difference for the additive allocation.
+* RD_regenerated: On additive scale, the risk difference for the regenerated scenario.
 ##### Network Summary Statistics
 * Number of [Connected Components](https://en.wikipedia.org/wiki/Component_(graph_theory))
 * Largest Component Size
