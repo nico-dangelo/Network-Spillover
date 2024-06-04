@@ -16,10 +16,10 @@ model<-argv[7]
 nsim<-as.numeric(argv[8])
 plots=F
 set.seed(1000)
-system.time({res<-nsim%>%rerun(sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2, p1=p1,p2=p2))})
+system.time({res<-nsim%>%rerun(sim(N=N,eprob=eprob,phiv=phiv,PrEP1=PrEP1,PrEP2=PrEP2,p1=p1,p2=p2, model=model, nsim=nsim))})
 res<-do.call("rbind",res)
 res<-cbind(res,nsim=rep(nsim,nrow(res)))
-col_list=c("random_contrast","additive_contrast","regenerated_contrast")
+# col_list=c("random_contrast","additive_contrast","regenerated_contrast")
 #Uncomment these lines to run summary analyses
 #means<-res%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),mean))
 #vars<-res%>%group_by(nsim,p1,p2)%>%summarise(across(all_of(col_list),var))
