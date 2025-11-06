@@ -1,3 +1,10 @@
+#!/bin/bash
+#SBATCH -o slurm-%j.out  # %j = job ID
+#SBATCH -c 1  # 1 cpu per task
+
+module load r-rocker-ml-verse/4.2.3+apptainer
+shopt -s expand_aliases
+
 # Network Size N
 for i in 50; do
     N=`bc -l <<<"scale=0;$i"`
@@ -17,7 +24,7 @@ for i in 50; do
                     for n in `seq 0.1 0.1  1`; do
                         p2=`bc -l  <<< "scale=1; $n"`
 # Network Generative Model 
-                        for o in "ER"; do
+                        for o in "ER" "BA" "WS"; do
                             model="$o"
 # Number of realizations
                            for nsim in 200; do
@@ -26,7 +33,7 @@ for i in 50; do
 #                                for p in `seq 1 1 3`; do
 #                                nsim= =$(echo (10**p) | bc)
                                 echo "N=$N phiv=$phiv PrEP1=$PrEP1 PrEP2=$PrEP2 p1=$p1 p2=$p2 model=$model nsim=$nsim"
-                                qsub simnets.qsub $N $phiv $PrEP1 $PrEP2 $p1 $p2 $model $nsim
+                                Rscript sim_scc.R $N $phiv $PrEP1 $PrEP2 $p1 $p2 $model $nsim
                             done
                         done
                     done
